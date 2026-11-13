@@ -1,0 +1,62 @@
+{
+  "feelings": [
+    "焦慮",
+    "想掌控",
+    "生氣",
+    "不耐煩",
+    "失落",
+    "疲憊",
+    "受傷",
+    "嫉妒",
+    "自責",
+    "想逃避",
+    "平靜",
+    "感恩"
+  ],
+  "hints": {
+    "焦慮": [
+      "peace",
+      "patience"
+    ],
+    "想掌控": [
+      "peace",
+      "patience"
+    ],
+    "生氣": [
+      "patience",
+      "gentleness",
+      "self-control"
+    ],
+    "不耐煩": [
+      "patience",
+      "gentleness",
+      "self-control"
+    ],
+    "失落": [
+      "joy",
+      "faithfulness"
+    ],
+    "疲憊": [
+      "joy",
+      "faithfulness"
+    ],
+    "受傷": [
+      "love",
+      "kindness"
+    ],
+    "嫉妒": [
+      "joy",
+      "goodness"
+    ],
+    "自責": [
+      "love",
+      "faithfulness"
+    ],
+    "想逃避": [
+      "self-control",
+      "faithfulness"
+    ],
+    "平靜": [],
+    "感恩": []
+  }
+}

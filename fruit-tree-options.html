@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>結滿果子的樹</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700&display=swap">
+<style>
+/* Layout: 頁首 → 九顆果子共用造型 → 四個畫風方案（兩欄，手機一欄）→ 比較表 */
+:root{
+  --bg:#F1F4EE; --surface:#FFFFFF; --ink:#1E2A22; --muted:#5C6A60; --line:#D7DED3; --accent:#3E6A4C;
+  --f-display:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0F1511; --surface:#18201B; --ink:#E2E8E0; --muted:#98A69C; --line:#2B362F; --accent:#8CBB97; color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0F1511; --surface:#18201B; --ink:#E2E8E0; --muted:#98A69C; --line:#2B362F; --accent:#8CBB97; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.7}
+.wrap{max-width:1180px;margin:0 auto;padding-block:40px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;margin:0;line-height:1.3;text-wrap:balance}
+h1{font-size:clamp(26px,4vw,34px)} h2{font-size:21px}
+p{margin:0}
+.eyebrow{font-size:12px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+.lede{color:var(--muted);max-width:66ch}
+header{display:flex;flex-direction:column;gap:8px}
+.legend{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px 10px}
+@media (max-width:700px){.legend{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.legend div{display:flex;flex-direction:column;align-items:center;gap:0;text-align:center}
+.legend svg{width:58px;height:58px}
+.legend b{font-family:var(--f-display);font-size:14px}
+.legend small{font-size:11px;color:var(--muted)}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px}
+@media (max-width:860px){.opts{grid-template-columns:minmax(0,1fr)}}
+.opt{display:flex;flex-direction:column;gap:12px;min-width:0}
+.opt svg.scene{width:100%;height:auto;border-radius:18px;display:block;box-shadow:0 18px 40px -30px rgba(20,40,25,.5)}
+.opt .hd{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.opt .tag{font-size:12px;color:var(--muted);letter-spacing:.06em}
+.opt p{color:var(--muted);font-size:14px}
+.opt ul{margin:0;padding-left:1.2em;font-size:13.5px;color:var(--muted)}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:18px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:14px}
+th,td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font-weight:500;color:var(--muted);font-size:12.5px}
+td b{font-family:var(--f-display)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Tree of Life · 主視覺方案</span>
+    <h1>結滿果子的樹：四種畫風</h1>
+    <p class="lede">九顆果子的造型在四個方案裡都一樣，只換畫風。每種果子集中長在自己那一側的枝條上，所以樹結滿了果子，仍然看得出「一種果子對應一條枝條」，之後在 App 裡只要把各區換成對應的生長階段就好。</p>
+  </header>
+
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <h2>九顆果子（四個方案共用）</h2>
+    <div class="legend" id="legend"></div>
+  </section>
+
+  <section class="opts" id="opts"></section>
+
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <h2>怎麼選</h2>
+    <div class="scroll"><table>
+      <thead><tr><th>方案</th><th>感覺</th><th>最適合</th><th>製作上要注意</th></tr></thead>
+      <tbody>
+        <tr><td><b>A 晨光立體</b></td><td>明亮、溫暖、可愛，最接近你給的參考圖</td><td>App 主畫面、宣傳圖；和 3D 模型最好銜接</td><td>果子光澤要統一，否則很容易看起來像不同來源拼起來的</td></tr>
+        <tr><td><b>B 植物圖鑑</b></td><td>安靜、有閱讀感，像一本手繪靈修筆記</td><td>省思頁、經文卡片、印刷品</td><td>水彩質感做成 3D 比較難，適合維持 2D</td></tr>
+        <tr><td><b>C 夜裡的燈</b></td><td>果子像燈籠在黑暗中發光，畫面最有情緒</td><td>睡前省思、深色模式</td><td>白天看會偏暗；可當作晚上的版本，跟 A 配成一對</td></tr>
+        <tr><td><b>D 紙藝層次</b></td><td>手作、溫和、層次清楚</td><td>兒童或家庭版本、節期活動</td><td>層次太多會顯得雜亂，果子要保持最上層</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+</div>
+
+<script>
+/* ---------- fruits ---------- */
+const F=[
+ {id:'love',zh:'仁愛',en:'Love',c:'#C8413A',fl:'#F6C9C2',k:'apple',heart:true,why:'愛心蘋果'},
+ {id:'joy',zh:'喜樂',en:'Joy',c:'#EDB12E',fl:'#FBEBB8',k:'citrus',why:'金色柑橘'},
+ {id:'peace',zh:'和平',en:'Peace',c:'#4F8CC9',fl:'#D3E4F2',k:'oval',why:'藍色橢圓果'},
+ {id:'patience',zh:'忍耐',en:'Patience',c:'#8E5F63',fl:'#E8D6DE',k:'fig',why:'無花果'},
+ {id:'kindness',zh:'恩慈',en:'Kindness',c:'#E2762E',fl:'#FAE0C8',k:'persimmon',why:'柿子'},
+ {id:'goodness',zh:'良善',en:'Goodness',c:'#6FA845',fl:'#D4ECCB',k:'pear',why:'青梨'},
+ {id:'faithfulness',zh:'信實',en:'Faithfulness',c:'#4A5A9A',fl:'#D9DDE8',k:'cluster',why:'一串葡萄'},
+ {id:'gentleness',zh:'溫柔',en:'Gentleness',c:'#A673C2',fl:'#EEE2F3',k:'plum',why:'紫李'},
+ {id:'self-control',zh:'節制',en:'Self-control',c:'#A8962C',fl:'#F3E6A6',k:'gourd',why:'稜紋瓜果'},
+];
+const hx=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+const mix=(a,b,t)=>{const A=hx(a),B=hx(b);return '#'+A.map((v,i)=>Math.round(v+(B[i]-v)*t).toString(16).padStart(2,'0')).join('')};
+let UID=0;
+function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+
+/* shape of each fruit inside a 100×100 box; returns {shape, top, extra, hl} */
+function geom(f,fill){
+  const s=`fill="${fill}"`, dk=mix(f.c,'#000000',.3);
+  switch(f.k){
+    case 'apple':return{top:38,shape:`<path ${s} d="M50 38 C 40 29, 21 32, 21 55 C 21 75, 35 88, 50 85 C 65 88, 79 75, 79 55 C 79 32, 60 29, 50 38 Z"/>`,
+      extra:f.heart?`<path fill="${mix(f.c,'#ffffff',.35)}" opacity=".75" d="M43 66 C 33 59, 34 50, 40 50 C 42 50, 43 52, 43 53 C 43 52, 44 50, 46 50 C 52 50, 53 59, 43 66 Z"/>`:'',hl:[36,48,7,4.5,-30]};
+    case 'citrus':return{top:34,shape:`<circle ${s} cx="50" cy="60" r="26"/>`,
+      extra:`<g fill="${dk}" opacity=".18"><circle cx="58" cy="70" r="1.2"/><circle cx="64" cy="62" r="1.2"/><circle cx="55" cy="78" r="1.2"/><circle cx="66" cy="72" r="1.2"/><circle cx="46" cy="76" r="1.2"/></g>`,hl:[40,48,7,4.5,-30]};
+    case 'oval':return{top:34,shape:`<ellipse ${s} cx="50" cy="60" rx="21" ry="26"/>`,extra:'',hl:[42,47,5,7,-15]};
+    case 'fig':return{top:30,shape:`<path ${s} d="M50 30 C 55 30, 57 39, 62 46 C 77 58, 75 84, 50 85 C 25 84, 23 58, 38 46 C 43 39, 45 30, 50 30 Z"/>`,
+      extra:`<g stroke="${dk}" stroke-width="1.1" fill="none" opacity=".35"><path d="M42 50 Q36 66 42 82"/><path d="M58 50 Q64 66 58 82"/><path d="M50 46 L50 84"/></g>`,hl:[39,62,4.5,8,15]};
+    case 'persimmon':return{top:40,shape:`<ellipse ${s} cx="50" cy="62" rx="29" ry="23"/>`,
+      extra:`<g fill="LEAF"><ellipse cx="42" cy="41" rx="9" ry="3.4" transform="rotate(-14 42 41)"/><ellipse cx="58" cy="41" rx="9" ry="3.4" transform="rotate(14 58 41)"/><ellipse cx="50" cy="44" rx="3.4" ry="5"/></g>`,hl:[38,53,7,4,-20]};
+    case 'pear':return{top:22,shape:`<path ${s} d="M50 22 C 57 22, 58 36, 62 46 C 78 62, 71 87, 50 87 C 29 87, 22 62, 38 46 C 42 36, 43 22, 50 22 Z"/>`,extra:'',hl:[40,64,5,9,15]};
+    case 'cluster':{const p=[[29,38],[43,38],[57,38],[71,38],[36,51],[50,51],[64,51],[43,64],[57,64],[50,77]];
+      return{top:29,cluster:p,shape:p.map(([x,y])=>`<circle ${s} cx="${x}" cy="${y}" r="9"/>`).join(''),extra:'',hl:null};}
+    case 'plum':return{top:35,shape:`<ellipse ${s} cx="50" cy="61" rx="24" ry="25"/>`,
+      extra:`<path d="M52 37 Q60 60 52 85" stroke="${dk}" stroke-width="1.4" fill="none" opacity=".35"/>`,hl:[38,50,6,5,-30]};
+    case 'gourd':return{top:33,shape:`<ellipse ${s} cx="50" cy="61" rx="23" ry="27"/>`,
+      extra:`<g stroke="${dk}" stroke-width="1.3" fill="none" opacity=".35"><path d="M50 35 L50 87"/><path d="M50 35 Q36 60 50 87"/><path d="M50 35 Q64 60 50 87"/><path d="M50 35 Q27 60 50 87"/><path d="M50 35 Q73 60 50 87"/></g>`,hl:[39,52,4.5,8,-10]};
+  }
+}
+/* style: gloss | wash | glow | paper */
+function fruit(f,st){
+  const id='f'+(UID++), P=st.pal;
+  const light=mix(f.c,'#ffffff',st.mode==='glow'?.6:st.mode==='wash'?.35:.55), dark=mix(f.c,'#000000',st.mode==='glow'?.15:.32);
+  const flat=st.mode==='paper';
+  const fill=flat?f.c:`url(#${id})`;
+  const g=geom(f,fill);
+  let defs=flat?'':`<radialGradient id="${id}" cx="36%" cy="30%" r="80%"><stop offset="0" stop-color="${light}"/><stop offset=".5" stop-color="${f.c}"/><stop offset="1" stop-color="${dark}"/></radialGradient>`;
+  const stem=f.k==='persimmon'?`<path d="M50 42 L51 35" stroke="${P.stem}" stroke-width="3" stroke-linecap="round"/>`
+    :`<path d="M50 ${g.top+2} C 50 ${g.top-6}, 51 ${g.top-12}, 55 ${g.top-16}" stroke="${P.stem}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+  const lx=53,ly=g.top-9;
+  const leaf=`<path d="M${lx} ${ly} C ${lx+8} ${ly-12}, ${lx+22} ${ly-13}, ${lx+29} ${ly-7} C ${lx+21} ${ly+3}, ${lx+9} ${ly+5}, ${lx} ${ly} Z" fill="${P.leafFruit}"/><path d="M${lx+2} ${ly} Q ${lx+14} ${ly-5} ${lx+26} ${ly-7}" stroke="${mix(P.leafFruit,'#000000',.25)}" stroke-width="1" fill="none"/>`;
+  let hl='';
+  if(st.mode!=='wash'){
+    if(g.cluster)hl=g.cluster.map(([x,y])=>`<circle cx="${x-3}" cy="${y-3.5}" r="${flat?2.2:2.4}" fill="#fff" opacity="${flat?.35:.6}"/>`).join('');
+    else if(g.hl){const[x,y,rx,ry,r]=g.hl;hl=`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" transform="rotate(${r} ${x} ${y})" fill="#fff" opacity="${flat?.3:st.mode==='glow'?.5:.65}"/>`;
+      if(st.mode==='gloss')hl+=`<ellipse cx="${x+4}" cy="${y+5}" rx="1.6" ry="1.2" fill="#fff" opacity=".9"/>`;}
+  }
+  const rim=st.mode==='wash'?`<g fill="none" stroke="${dark}" stroke-width="1.2" opacity=".55">${geom(f,'none').shape}</g>`:'';
+  const halo=st.mode==='glow'?`<circle cx="50" cy="60" r="38" fill="${f.fl}" opacity=".55" filter="url(#${st.key}-blur)"/><circle cx="50" cy="60" r="24" fill="${f.c}" opacity=".5" filter="url(#${st.key}-blur)"/>`:'';
+  const filt=st.mode==='paper'?` filter="url(#${st.key}-shadow)"`:st.mode==='wash'?` filter="url(#${st.key}-wc)"`:st.mode==='gloss'?` filter="url(#${st.key}-soft)"`:'';
+  return `<defs>${defs}</defs>${halo}<g${filt}>${stem}${leaf}${g.shape}${g.extra.replace('LEAF',P.leafFruit)}${hl}${rim}</g>`;
+}
+
+/* ---------- scene ---------- */
+const STYLES=[
+ {key:'a',mode:'gloss',name:'A　晨光立體',tag:'GLOSSY 3D · 最接近參考圖',
+  desc:'清晨的天空、圓潤的樹冠、帶高光的果子，像可以伸手摘下來。和你給的參考圖同一個方向，但拿掉了角色和多餘的裝飾，讓樹和果子當主角。',
+  pts:['果子有清楚的高光與陰影，縮小成圖示也立體','直接對應之後的 GLB 模型','整體最「可愛」，年輕族群接受度高'],
+  pal:{sky:['#9FD3F0','#E8F4F2','#FFF4D9'],hill:['#A9D27A','#8DC263','#79B052'],leaves:['#5E9E3C','#6FAF45','#80BE52','#96CC62','#A9D872'],trunk:['#8A5A35','#B07A4C'],stem:'#6B4A2E',leafFruit:'#6DAE45',ground:'#7DB552',flowers:['#ffffff','#FFE38A','#F7B3C2'],sun:'#FFF1B8'}},
+ {key:'b',mode:'wash',name:'B　植物圖鑑',tag:'WATERCOLOR · 安靜的閱讀感',
+  desc:'像手繪植物圖鑑的一頁：紙張底色、透明水彩的樹冠、細線勾邊的果子。畫面留白多，適合和經文、文字放在一起。',
+  pts:['和經文排版最協調，不搶字','印成卡片或筆記本也好看','色彩較淡，在手機小圖上辨識度比 A 低一些'],
+  pal:{paper:'#F4F3EA',leaves:['#8DB878','#A3C78C','#7BA866','#B7D3A0'],trunk:['#7A5C44','#9C7A5E'],stem:'#6E5741',leafFruit:'#7EAA66',ground:'#C9D3B4',ink:'#5A4A3C'}},
+ {key:'c',mode:'glow',name:'C　夜裡的燈',tag:'NIGHT GLOW · 睡前省思',
+  desc:'深藍的夜，九種果子像小燈籠一樣各自發光。省思常在晚上，這個版本讓「回來省思」像回到一個安靜亮著的地方。',
+  pts:['情緒最強，最有記憶點','深色模式直接可用','可以和 A 配成白天／夜晚兩個版本，依時間切換'],
+  pal:{sky:['#0B1428','#16294A','#24406A'],hill:['#14261F','#0F1F19'],leaves:['#1D3B33','#22463C','#2A5246','#305C4F'],trunk:['#2B2018','#3E2F23'],stem:'#5A4636',leafFruit:'#3E7A5A',ground:'#0D1C16',star:'#FFF6D6'}},
+ {key:'d',mode:'paper',name:'D　紙藝層次',tag:'PAPER CUT · 手作溫度',
+  desc:'一層層剪紙疊出來的樹和山丘，每一層有淡淡的投影。沒有寫實的光澤，但很溫和，像主日學教室牆上的作品。',
+  pts:['層次清楚，九個區塊一眼分開','風格獨特，不容易和其他 App 撞','適合兒童、家庭或節期活動版本'],
+  pal:{bg:'#D8ECE6',hill:['#B8DCA8','#9CCB8C','#83BA76'],leaves:['#4F9A5C','#5FAA68','#72BB76','#86C985'],trunk:['#9A6B45','#B9845A'],stem:'#7A5536',leafFruit:'#4F9A5C',ground:'#8DBF7A',sun:'#FBE6A8'}},
+];
+
+function scene(st){
+  const P=st.pal,k=st.key,R=rng(7);
+  let bg='',defs=`<filter id="${k}-blur" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="7"/></filter>
+    <filter id="${k}-shadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#1D3A2A" flood-opacity=".35"/></filter>
+    <filter id="${k}-soft" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="3" stdDeviation="2.5" flood-color="#2A3A10" flood-opacity=".28"/></filter>
+    <filter id="${k}-wc" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".04" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="5"/></filter>
+    <filter id="${k}-wcbig" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".025" numOctaves="3" seed="9"/><feDisplacementMap in="SourceGraphic" scale="16"/></filter>
+    <linearGradient id="${k}-trunk" x1="0" x2="1"><stop offset="0" stop-color="${P.trunk[0]}"/><stop offset=".55" stop-color="${P.trunk[1]}"/><stop offset="1" stop-color="${P.trunk[0]}"/></linearGradient>`;
+  if(st.mode==='gloss'){
+    defs+=`<linearGradient id="${k}-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.sky[0]}"/><stop offset=".6" stop-color="${P.sky[1]}"/><stop offset="1" stop-color="${P.sky[2]}"/></linearGradient>
+      <radialGradient id="${k}-sun"><stop offset="0" stop-color="${P.sun}"/><stop offset="1" stop-color="${P.sun}" stop-opacity="0"/></radialGradient>`;
+    bg=`<rect width="800" height="560" fill="url(#${k}-sky)"/><circle cx="690" cy="70" r="160" fill="url(#${k}-sun)"/>
+      <g fill="#fff" opacity=".85"><ellipse cx="120" cy="90" rx="70" ry="20"/><ellipse cx="160" cy="78" rx="44" ry="22"/><ellipse cx="640" cy="150" rx="60" ry="16"/></g>
+      <path d="M0 430 Q160 360 330 420 T800 400 L800 560 L0 560Z" fill="${P.hill[0]}"/>
+      <path d="M0 470 Q220 420 420 470 T800 455 L800 560 L0 560Z" fill="${P.hill[1]}"/>
+      <path d="M0 508 Q400 482 800 508 L800 560 L0 560Z" fill="${P.ground}"/>`;
+    for(let i=0;i<34;i++){const x=R()*800,y=500+R()*55;bg+=`<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${(2+R()*2.5).toFixed(1)}" fill="${P.flowers[i%3]}"/>`}
+  }else if(st.mode==='wash'){
+    bg=`<rect width="800" height="560" fill="${P.paper}"/>
+      <g filter="url(#${k}-wcbig)" opacity=".7"><ellipse cx="400" cy="522" rx="330" ry="26" fill="${P.ground}"/></g>
+      <g font-family="Noto Serif TC, serif" fill="${P.ink}" opacity=".7"><text x="40" y="52" font-size="20" letter-spacing="4">聖靈所結的果子</text><text x="40" y="76" font-size="12" letter-spacing="2" font-family="Noto Sans TC, sans-serif">加拉太書 5:22-23</text></g>
+      <line x1="40" y1="88" x2="200" y2="88" stroke="${P.ink}" stroke-width=".8" opacity=".4"/>`;
+  }else if(st.mode==='glow'){
+    defs+=`<linearGradient id="${k}-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.sky[0]}"/><stop offset=".7" stop-color="${P.sky[1]}"/><stop offset="1" stop-color="${P.sky[2]}"/></linearGradient>`;
+    bg=`<rect width="800" height="560" fill="url(#${k}-sky)"/>`;
+    for(let i=0;i<70;i++){bg+=`<circle cx="${(R()*800).toFixed(0)}" cy="${(R()*330).toFixed(0)}" r="${(R()*1.4+.3).toFixed(1)}" fill="${P.star}" opacity="${(.3+R()*.7).toFixed(2)}"/>`}
+    bg+=`<circle cx="660" cy="90" r="26" fill="${P.star}" opacity=".9"/><circle cx="672" cy="82" r="24" fill="${P.sky[0]}"/>
+      <path d="M0 450 Q200 400 400 450 T800 440 L800 560 L0 560Z" fill="${P.hill[0]}"/>
+      <path d="M0 505 Q400 480 800 505 L800 560 L0 560Z" fill="${P.ground}"/>`;
+  }else{
+    bg=`<rect width="800" height="560" fill="${P.bg}"/><circle cx="660" cy="110" r="54" fill="${P.sun}" filter="url(#${k}-shadow)"/>
+      <path d="M0 410 Q180 340 360 400 T800 380 L800 560 L0 560Z" fill="${P.hill[0]}" filter="url(#${k}-shadow)"/>
+      <path d="M0 455 Q240 400 460 455 T800 440 L800 560 L0 560Z" fill="${P.hill[1]}" filter="url(#${k}-shadow)"/>
+      <path d="M0 500 Q400 470 800 500 L800 560 L0 560Z" fill="${P.hill[2]}" filter="url(#${k}-shadow)"/>`;
+  }
+  /* trunk */
+  const trunkFill=st.mode==='paper'?P.trunk[1]:`url(#${k}-trunk)`;
+  const trunkFilt=st.mode==='paper'?` filter="url(#${k}-shadow)"`:st.mode==='wash'?` filter="url(#${k}-wc)"`:'';
+  const trunk=`<g${trunkFilt}><path fill="${trunkFill}" d="M352 528 C 372 500, 382 450, 380 380 C 372 340, 330 300, 270 296 L 276 284 C 330 284, 368 306, 386 336 C 388 300, 392 270, 392 240 L 408 240 C 408 270, 412 300, 414 336 C 432 306, 470 284, 524 284 L 530 296 C 470 300, 428 340, 420 380 C 418 450, 428 500, 448 528 C 420 522, 380 522, 352 528 Z"/>
+    ${st.mode==='wash'?`<g stroke="${P.ink}" stroke-width=".8" fill="none" opacity=".35"><path d="M394 520 C 396 450, 392 400, 396 340"/><path d="M408 500 C 406 440, 410 400, 406 360"/></g>`:''}</g>`;
+  /* foliage */
+  const blobs=[];const cx=400,cy=250,rx=300,ry=165;
+  for(let i=0;i<64;i++){const a=R()*Math.PI*2,d=Math.sqrt(R());const x=cx+Math.cos(a)*d*rx*.86,y=cy+Math.sin(a)*d*ry*.84;blobs.push([x,y,46+R()*40])}
+  blobs.sort((p,q)=>p[1]-q[1]);
+  let fol='';
+  if(st.mode==='paper'){
+    [[1,0],[.86,1],[.7,2],[.52,3]].forEach(([s,ci])=>{
+      fol+=`<path filter="url(#${k}-shadow)" fill="${P.leaves[ci]}" d="${cloud(cx,cy+(1-s)*30,rx*s,ry*s,14,R)}"/>`});
+  }else{
+    const op=st.mode==='wash'?.5:1;
+    const g=blobs.map(([x,y,r],i)=>{const t=(y-(cy-ry))/(2*ry);const ci=Math.max(0,Math.min(P.leaves.length-1,Math.round((1-t)*(P.leaves.length-1)+(R()-.5))));
+      return `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${r.toFixed(0)}" fill="${P.leaves[ci]}" opacity="${op}"/>`}).join('');
+    const under=`<path fill="${P.leaves[0]}" opacity="${op}" d="${cloud(cx,cy+6,rx*.98,ry*.95,16,R)}"/>`;
+    fol=`<g${st.mode==='wash'?` filter="url(#${k}-wcbig)"`:''}>${under}${g}</g>`;
+    if(st.mode==='gloss'){fol+=blobs.filter((_,i)=>i%4===0).map(([x,y,r])=>`<circle cx="${(x-r*.25).toFixed(0)}" cy="${(y-r*.3).toFixed(0)}" r="${(r*.45).toFixed(0)}" fill="#C6E58C" opacity=".35"/>`).join('')}
+    if(st.mode==='glow'){for(let i=0;i<26;i++){fol+=`<circle cx="${(100+R()*600).toFixed(0)}" cy="${(80+R()*400).toFixed(0)}" r="2" fill="#F8F2A0" opacity=".85" filter="url(#${k}-blur)"/><circle cx="${(100+R()*600).toFixed(0)}" cy="${(80+R()*400).toFixed(0)}" r="1.3" fill="#FFF8C8"/>`}}
+  }
+  /* fruits: each kind clustered in its own sector */
+  let fr='';const placed=[];
+  F.forEach((f,i)=>{
+    const base=162+i*27;
+    [[0,.84,.84],[-7,.5,.76],[9,.68,.7]].forEach(([da,r,s],j)=>{
+      const a=(base+da)*Math.PI/180;
+      const tx=cx+Math.cos(a)*rx*r+(R()-.5)*6, ty=cy+44+Math.sin(a)*ry*r*1.05+(R()-.5)*6;
+      placed.push([ty,`<g transform="translate(${(tx-50*s).toFixed(1)} ${(ty-55*s).toFixed(1)}) scale(${s})">${fruit(f,st)}</g>`]);
+    });
+  });
+  placed.sort((p,q)=>p[0]-q[0]);fr=placed.map(p=>p[1]).join('');
+  return `<svg class="scene" viewBox="0 0 800 560" role="img" aria-label="${st.name} 的結滿果子的樹"><defs>${defs}</defs>${bg}${trunk}${fol}${fr}</svg>`;
+}
+function cloud(cx,cy,rx,ry,n,R){
+  let pts=[];for(let i=0;i<n;i++){const a=i/n*Math.PI*2,j=.9+R()*.18;pts.push([cx+Math.cos(a)*rx*j,cy+Math.sin(a)*ry*j])}
+  let d=`M${pts[0][0].toFixed(0)} ${pts[0][1].toFixed(0)}`;
+  for(let i=0;i<n;i++){const p=pts[i],q=pts[(i+1)%n];const mx=(p[0]+q[0])/2,my=(p[1]+q[1])/2;const ox=mx-cx,oy=my-cy,l=Math.hypot(ox,oy);
+    const bx=mx+ox/l*Math.min(rx,ry)*.28,by=my+oy/l*Math.min(rx,ry)*.28;d+=` Q${bx.toFixed(0)} ${by.toFixed(0)} ${q[0].toFixed(0)} ${q[1].toFixed(0)}`}
+  return d+'Z';
+}
+
+document.getElementById('legend').innerHTML=F.map(f=>`<div><svg viewBox="0 0 100 100" aria-hidden="true">${fruit(f,{...STYLES[0],key:'lg'})}</svg><b>${f.zh}</b><small>${f.why}</small></div>`).join('')
+  +`<svg width="0" height="0" style="position:absolute"><defs><filter id="lg-soft" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="3" stdDeviation="2.5" flood-color="#2A3A10" flood-opacity=".28"/></filter></defs></svg>`;
+document.getElementById('opts').innerHTML=STYLES.map(st=>`<article class="opt">${scene(st)}
+  <div class="hd"><h3>${st.name}</h3><span class="tag">${st.tag}</span></div>
+  <p>${st.desc}</p><ul>${st.pts.map(p=>`<li>${p}</li>`).join('')}</ul></article>`).join('');
+</script>
+</body>
+</html>

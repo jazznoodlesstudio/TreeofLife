@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>生命樹沙盒</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700&display=swap">
+<style>
+/* Layout: 左邊是會生長的樹（桌機固定在畫面上），右邊是今天的省思／紀錄／開發者檢視；下方是日期與模擬控制 */
+:root{
+  --bg:#0B1426; --panel:#13203A; --raise:#1A2A48; --ink:#E9EEF6; --muted:#9BA9C2; --line:#26385C;
+  --accent:#F2D27A; --accent-ink:#1A1608; --soft:rgba(255,255,255,.05); --danger:#F29A8A;
+  --f-display:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  color-scheme:dark;
+}
+body.day{--bg:#EDF3EA; --panel:#FFFFFF; --raise:#F4F8F2; --ink:#1E2A22; --muted:#5A6A5E; --line:#D3DECF;
+  --accent:#3E6A4C; --accent-ink:#FFFFFF; --soft:rgba(62,106,76,.07); --danger:#B4473A; color-scheme:light}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.7;transition:background 1.2s ease,color 1.2s ease}
+.wrap{max-width:1280px;margin:0 auto;padding-block:24px 56px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;margin:0;line-height:1.3;text-wrap:balance}
+h1{font-size:clamp(22px,3vw,28px)} h2{font-size:18px} h3{font-size:16px}
+p{margin:0}
+button{font:inherit;color:inherit}
+button:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.top{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-end;justify-content:space-between}
+.top .t{display:flex;flex-direction:column;gap:4px}
+.eyebrow{font-size:12px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+.sub{color:var(--muted);font-size:13.5px;max-width:70ch}
+.seg{display:inline-flex;gap:4px;padding:4px;border-radius:99px;border:1px solid var(--line);background:var(--panel)}
+.seg button{font-size:13px;border:0;border-radius:99px;padding:5px 14px;cursor:pointer;background:transparent;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+
+.main{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:920px){.main{grid-template-columns:minmax(0,1fr)}}
+.stage{position:sticky;top:max(12px,env(safe-area-inset-top,0px));display:flex;flex-direction:column;gap:12px}
+@media (max-width:920px){.stage{position:static}}
+#tree svg{width:100%;height:auto;display:block;border-radius:20px;box-shadow:0 26px 60px -40px #000}
+.status{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;font-size:13.5px;color:var(--muted)}
+.status b{font-family:var(--f-display);color:var(--ink);font-size:16px}
+.msg{min-height:1.7em;font-family:var(--f-display);font-size:15px;color:var(--ink)}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:7px 14px;cursor:pointer;font-size:13.5px}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent;font-weight:500}
+.btn.danger{color:var(--danger)}
+.btn[disabled]{opacity:.45;cursor:default}
+select{font:inherit;font-size:13.5px;padding:7px 10px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:20px;display:flex;flex-direction:column;min-width:0}
+.tabs{display:flex;gap:2px;padding:6px;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;border:0;background:transparent;padding:8px;border-radius:12px;cursor:pointer;color:var(--muted);font-size:14px}
+.tabs button[aria-selected="true"]{background:var(--soft);color:var(--ink);font-weight:500}
+.pane{padding:18px;display:flex;flex-direction:column;gap:18px}
+.field{display:flex;flex-direction:column;gap:8px}
+.lbl{font-size:13px;color:var(--muted)}
+.lbl b{color:var(--ink);font-weight:500;font-size:14px}
+textarea{font:inherit;font-size:14px;width:100%;min-height:64px;resize:vertical;padding:9px 11px;border-radius:12px;border:1px solid var(--line);background:var(--raise);color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--raise);border-radius:99px;padding:4px 12px;cursor:pointer;font-size:13px}
+.chip[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.practice .chip{border-radius:12px;text-align:left}
+.hint{font-size:12.5px;color:var(--muted)}
+.checkin{padding:12px;border-radius:14px;background:var(--soft);display:flex;flex-direction:column;gap:8px}
+
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+.card{position:relative;display:flex;flex-direction:column;align-items:center;padding:8px 2px 8px;border-radius:16px;border:1px solid transparent;
+  background:transparent;cursor:pointer;transition:opacity .8s ease,background .8s ease,border-color .8s ease}
+.card svg{width:56px;height:56px}
+.card .zh{font-family:var(--f-display);font-weight:700;font-size:14px;line-height:1.4}
+.stg{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--muted);line-height:1.2;min-height:16px}
+.stg svg{width:15px;height:15px}
+.card.rec{border:1px dashed color-mix(in srgb,var(--c) 60%,transparent)}
+.card .tag{position:absolute;top:4px;right:4px;font-size:10px;line-height:1;padding:3px 6px;border-radius:99px;background:var(--soft);color:var(--muted)}
+.grid.has .card{opacity:.5}
+.grid.has .card.sel{opacity:1;border:1px solid var(--c);background:color-mix(in srgb,var(--c) 12%,transparent)}
+.focusbox{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:14px;background:color-mix(in srgb,var(--c) 9%,transparent)}
+.focusbox .q{border-left:3px solid var(--c);padding-left:10px;font-size:14px}
+.radio{display:flex;flex-wrap:wrap;gap:6px}
+
+.hist{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
+.hist li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:start;padding:10px 12px;border-radius:14px;background:var(--soft)}
+.hist .d{font-size:12.5px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.hist .body{font-size:13.5px;min-width:0}
+.hist .body span{color:var(--muted)}
+.hist svg{width:22px;height:22px;vertical-align:-6px}
+.confirm{grid-column:1/-1;display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:12px;border:1px solid var(--danger)}
+.empty{color:var(--muted);font-size:14px}
+
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums;min-width:520px}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{font-weight:500;color:var(--muted);font-size:12px}
+.kv{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.kv div{padding:8px 10px;border-radius:12px;background:var(--soft);font-size:12.5px;color:var(--muted)}
+.kv b{display:block;font-size:17px;color:var(--ink);font-variant-numeric:tabular-nums}
+.note{font-size:12.5px;color:var(--muted)}
+
+/* 動畫：都很慢（規格 5.3） */
+@keyframes breathe{from{opacity:.55}to{opacity:1}}
+@keyframes twinkle{from{opacity:.15}to{opacity:.9}}
+@keyframes drift{0%{transform:translate(0,0)}50%{transform:translate(14px,-18px)}100%{transform:translate(-10px,6px)}}
+@keyframes rise{from{opacity:0;transform:scale(.55)}to{opacity:1;transform:scale(1)}}
+@keyframes pop{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:scale(1)}}
+@keyframes draw{from{stroke-dashoffset:var(--len)}to{stroke-dashoffset:0}}
+@keyframes tgrow{from{transform:scaleY(.86)}to{transform:scaleY(1)}}
+@keyframes flow{0%{stroke-dashoffset:var(--len);opacity:0}15%{opacity:.95}100%{stroke-dashoffset:calc(var(--len) * -1);opacity:0}}
+.br{animation:breathe var(--d,3.6s) ease-in-out var(--dl,0s) infinite alternate}
+.tw{animation:twinkle var(--d,3s) ease-in-out var(--dl,0s) infinite alternate}
+.ff{transform-box:fill-box;animation:drift var(--d,9s) ease-in-out var(--dl,0s) infinite alternate}
+.enter{transform-box:fill-box;transform-origin:50% 60%;animation:rise 2.2s cubic-bezier(.2,.7,.2,1) var(--dl,0s) both}
+.leafin{transform-box:fill-box;transform-origin:center;animation:pop 2s cubic-bezier(.2,.7,.2,1) var(--dl,0s) both}
+.rootin{stroke-dasharray:var(--len);animation:draw 2.4s ease var(--dl,0s) both}
+.trunkgrow{transform-box:fill-box;transform-origin:50% 100%;animation:tgrow 2.4s ease both}
+.rootlight{stroke-dasharray:24 var(--len);animation:flow 4.2s ease-in-out var(--dl,0s) 1 both}
+@media (prefers-reduced-motion:reduce){.br,.tw,.ff,.enter,.leafin,.rootin,.trunkgrow,.rootlight{animation:none}.rootlight{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="t">
+      <span class="eyebrow">Tree of Life · 成長引擎沙盒 · 規格 v0.3</span>
+      <h1>生命樹沙盒</h1>
+      <p class="sub">寫下今天的省思，或用下方的模擬快轉幾週，看樹怎麼依規格一點一點長大。資料只存在這個瀏覽器裡。</p>
+    </div>
+    <div class="seg" role="group" aria-label="白天或夜晚">
+      <button type="button" data-mode="auto">依時間</button><button type="button" data-mode="day">白天</button><button type="button" data-mode="night">夜晚</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="stage">
+      <div id="tree"></div>
+      <div class="status" id="status"></div>
+      <p class="msg" id="msg" aria-live="polite"></p>
+      <div class="ctrl">
+        <button type="button" class="btn" data-skip="1">到明天</button>
+        <button type="button" class="btn" data-skip="3">跳過 3 天</button>
+        <button type="button" class="btn" data-skip="8">跳過 8 天</button>
+        <span style="flex:1"></span>
+        <label class="lbl" for="persona">模擬</label>
+        <select id="persona">
+          <option value="regular">每週 3–4 次</option>
+          <option value="light">偶爾（每週 1–2 次）</option>
+          <option value="gap">規律，中斷十天後回來</option>
+        </select>
+        <button type="button" class="btn primary" id="sim">快轉 8 週</button>
+        <button type="button" class="btn danger" id="reset">重新開始</button>
+      </div>
+    </div>
+
+    <section class="panel">
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" data-tab="today" aria-selected="true">今天的省思</button>
+        <button type="button" role="tab" data-tab="hist" aria-selected="false">紀錄</button>
+        <button type="button" role="tab" data-tab="dev" aria-selected="false">開發者檢視</button>
+      </div>
+      <div class="pane" id="pane"></div>
+    </section>
+  </div>
+</div>
+
+<script>/*@INLINE*/</script>
+<script>
+const IDS = FRUITS.map(f => f.id), BY = Object.fromEntries(FRUITS.map(f => [f.id, f]));
+const STAGE_MSG = { seed: z => `樹上多了一顆「${z}」的種子`, bud: z => `「${z}」結了花苞`, flower: z => `「${z}」開花了`, fruit: z => `「${z}」結出了果子` };
+const SAMPLE_Q1 = ['開會時同事一直打斷我，我很想直接回嗆', '等了一個禮拜的回覆還是沒有消息', '媽媽打電話來又問我工作的事', '孩子一直拖拖拉拉不肯睡', '朋友升職了，我替他高興，心裡也有點酸', '今天終於把拖了很久的報告交出去', '在捷運上讓座給一位老太太', '晚餐時和家人好好聊了一陣子', '被主管當眾指出錯誤', '一個人走路回家時突然覺得很累'];
+const KEY = 'tol-sandbox-v1';
+const localToday = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+
+let S = { start: localToday(), today: localToday(), refls: [], states: null, pick: 'auto' };
+try { const raw = localStorage.getItem(KEY); if (raw) S = { ...S, ...JSON.parse(raw) }; } catch (e) {}
+const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+let MODE = 'night', TAB = 'today', lastVis = null, draft = null, delAsk = null, simTimer = null;
+
+/* ---------- 引擎 ---------- */
+function blankStates() { return Object.fromEntries(IDS.map(id => [id, { state: 'dormant', state_changed_on: null }])); }
+function counters() { return Engine.computeCounters(S.refls, RULES, IDS); }
+function visual() { return Engine.treeVisual(counters(), S.states || blankStates(), S.refls, S.today, RULES, IDS); }
+function save(rec) {
+  const before = S.states || blankStates();
+  S.refls = S.refls.filter(r => r.local_date !== rec.local_date).concat([rec]).sort((a, b) => a.local_date.localeCompare(b.local_date));
+  S.states = Engine.recompute(S.states, S.refls, S.today, RULES, IDS).states;
+  persist();
+  return IDS.filter(id => Engine.rank(S.states[id].state) > Engine.rank(before[id].state)).map(id => STAGE_MSG[S.states[id].state](BY[id].zh));
+}
+
+/* ---------- 畫面 ---------- */
+const autoMode = () => { const h = new Date().getHours(); return h >= RULES.visual.day_hours[0] && h < RULES.visual.day_hours[1] ? 'day' : 'night'; };
+function setMode(pick) {
+  S.pick = pick; MODE = pick === 'auto' ? autoMode() : pick; persist();
+  document.body.classList.toggle('day', MODE === 'day');
+  document.querySelectorAll('.seg [data-mode]').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === pick));
+  lastVis = null; renderTree(); renderPane();
+}
+function renderTree(animate) {
+  const v = visual();
+  document.getElementById('tree').innerHTML = Art.tree(v, { mode: MODE, fruits: FRUITS, rules: RULES, prev: animate ? lastVis : null, label: '依目前紀錄生長的生命樹' });
+  lastVis = v;
+  const n = Engine.dnum(S.today) - Engine.dnum(S.start) + 1;
+  const wd = '日一二三四五六'[new Date(Engine.dnum(S.today) * 864e5).getUTCDay()];
+  const total = counters().total_reflections;
+  document.getElementById('status').innerHTML = `<b>${S.today.slice(5).replace('-', '/')}（${wd}）</b><span>第 ${n} 天</span><span>${total ? `已寫 ${total} 次省思` : '還沒有省思'}</span>${v.returning ? '<span>根部有一道水光流過</span>' : ''}`;
+}
+function say(t) { document.getElementById('msg').textContent = t || ''; }
+
+const pane = document.getElementById('pane');
+function renderPane() {
+  document.querySelectorAll('.tabs [data-tab]').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === TAB));
+  if (TAB === 'today') renderToday(); else if (TAB === 'hist') renderHist(); else renderDev();
+}
+
+/* 今天：上次的實踐回報 */
+function pendingCheckin() {
+  const prev = S.refls.filter(r => r.local_date < S.today && r.focus_fruit_id && Engine.chars(r.practice_text) >= RULES.practice_min_chars);
+  const last = prev[prev.length - 1];
+  if (!last) return null;
+  const answered = S.refls.some(r => r.checkin_for_date === last.local_date && r.local_date !== S.today);
+  return answered ? null : last;
+}
+function lastFocus() { const r = S.refls.filter(r => r.local_date < S.today && r.focus_fruit_id); return r.length ? r[r.length - 1].focus_fruit_id : null; }
+
+function renderToday() {
+  const existing = S.refls.find(r => r.local_date === S.today);
+  if (existing && !draft) {
+    const f = existing.focus_fruit_id && BY[existing.focus_fruit_id];
+    pane.innerHTML = `<h2>今天已經寫過了</h2>
+      <p>${esc(existing.event_text)}</p>
+      <p class="lbl">${(existing.inner_reactions || []).join('、') || '沒有選感受'}${f ? `　·　留意：<b>${f.zh}</b>` : '　·　今天沒有選果子'}</p>
+      ${existing.practice_text ? `<p class="lbl">明天想試試：${esc(existing.practice_text)}</p>` : ''}
+      <div class="ctrl"><button type="button" class="btn" id="edit">修改今天的省思</button><button type="button" class="btn primary" data-skip="1">到明天</button></div>`;
+    return;
+  }
+  if (!draft) {
+    const ck = pendingCheckin();
+    draft = existing ? { ...existing, inner_reactions: [...(existing.inner_reactions || [])] } :
+      { local_date: S.today, event_text: '', inner_reactions: [], inner_other: '', direction: null, re_response: '', focus_fruit_id: null, practice_text: '',
+        prev_practice_checkin: null, checkin_for_date: ck ? ck.local_date : null };
+  }
+  const d = draft, ck = d.checkin_for_date && S.refls.find(r => r.local_date === d.checkin_for_date);
+  const hints = Engine.hintsFor(d.inner_reactions, HINTS), last = lastFocus();
+  const states = S.states || blankStates();
+  const sel = d.focus_fruit_id && BY[d.focus_fruit_id];
+  const glow = st => st === 'dormant' ? 0 : RULES.visual.glow[st] * RULES.visual[MODE].halo * 1.2;
+  pane.innerHTML = `
+    ${ck ? `<div class="checkin"><span class="lbl">上次你想實踐的「<b>${esc(ck.practice_text)}</b>」，後來如何？（可以不回答）</span>
+      <div class="radio">${[['done', '做到了'], ['partly', '做了一部分'], ['not_yet', '還沒有']].map(([k, t]) => `<button type="button" class="chip" data-ck="${k}" aria-pressed="${d.prev_practice_checkin === k}">${t}</button>`).join('')}</div></div>` : ''}
+    <div class="field"><label class="lbl" for="q1"><b>1　今天發生了什麼事？</b></label>
+      <textarea id="q1" placeholder="一件讓你有感覺的小事就好">${esc(d.event_text)}</textarea>
+      <div><button type="button" class="chip" id="fill">帶入範例</button></div></div>
+    <div class="field"><span class="lbl"><b>2　當時你心裡有什麼反應？</b>（可複選）</span>
+      <div class="chips">${FEELINGS.map(t => `<button type="button" class="chip" data-feel="${t}" aria-pressed="${d.inner_reactions.includes(t)}">${t}</button>`).join('')}</div></div>
+    <div class="field"><span class="lbl"><b>3　那一刻比較像在吃哪一棵樹的果子？</b>（不影響樹的成長）</span>
+      <div class="radio">${DIRECTIONS.map(([k, t]) => `<button type="button" class="chip" data-dir="${k}" aria-pressed="${d.direction === k}">${t}</button>`).join('')}</div></div>
+    <div class="field"><span class="lbl"><b>5　今天想留意哪一個果子？</b>　選一個就好，也可以今天先不選。</span>
+      ${hints.length ? `<span class="hint">你剛才選了「${d.inner_reactions.join('」「')}」，或許可以看看 ${hints.map(id => BY[id].zh).join('、')}</span>` : ''}
+      <div class="grid${sel ? ' has' : ''}">${FRUITS.map(f => { const st = states[f.id].state;
+        return `<button type="button" class="card${sel && sel.id === f.id ? ' sel' : ''}${hints.includes(f.id) ? ' rec' : ''}" data-fruit="${f.id}" style="--c:${f.c}" aria-pressed="${!!sel && sel.id === f.id}" aria-label="${f.zh}，${STAGE_ZH[st]}">
+          ${f.id === last ? '<span class="tag">上次</span>' : ''}${Art.icon(f, 'fruit', { glow: sel && sel.id === f.id ? 1 : glow(st) })}
+          <span class="zh">${f.zh}</span><span class="stg">${st === 'dormant' ? '還沒選過' : Art.icon(f, st) + STAGE_ZH[st]}</span></button>`; }).join('')}</div>
+      ${sel ? `<div class="focusbox" style="--c:${sel.c}"><span class="lbl">${sel.desc}</span><p class="q">${sel.q[(Engine.dnum(S.today)) % sel.q.length]}</p>
+        <span class="lbl"><b>明天可以試試</b></span>
+        <div class="chips practice">${sel.p.map(t => `<button type="button" class="chip" data-prac="${esc(t)}" aria-pressed="${d.practice_text === t}">${t}</button>`).join('')}</div>
+        <textarea id="prac" placeholder="或寫下你自己的方式（4 個字以上）">${esc(d.practice_text)}</textarea></div>` : ''}
+    </div>
+    <div class="ctrl"><button type="button" class="btn primary" id="saveR">${existing ? '儲存修改' : '完成今天的省思'}</button>
+      ${existing ? '<button type="button" class="btn" id="cancel">取消</button>' : ''}
+      <span class="hint" id="q1hint"${Engine.chars(d.event_text) ? ' hidden' : ''}>寫下第 1 題才算一次省思</span></div>`;
+}
+
+function renderHist() {
+  if (!S.refls.length) { pane.innerHTML = '<p class="empty">還沒有任何紀錄。寫下今天的省思，或用「快轉 8 週」產生一段示範紀錄。</p>'; return; }
+  const states = S.states || blankStates();
+  pane.innerHTML = `<p class="note">刪除紀錄會依剩下的紀錄重算，這是唯一會讓果子退回前一階的情況。</p><ul class="hist">${[...S.refls].reverse().map(r => {
+    const f = r.focus_fruit_id && BY[r.focus_fruit_id];
+    const ck = r.prev_practice_checkin ? { done: '上次的實踐：做到了', partly: '上次的實踐：做了一部分', not_yet: '上次的實踐：還沒有' }[r.prev_practice_checkin] : '';
+    let confirm = '';
+    if (delAsk === r.local_date) {
+      const drop = Engine.previewDelete(states, S.refls, r.local_date, RULES, IDS);
+      confirm = `<div class="confirm"><span>${drop.length ? drop.map(x => `刪除這筆紀錄會讓「${BY[x.id].zh}」回到${STAGE_ZH[x.to] === '還沒選過' ? '還沒開始' : STAGE_ZH[x.to]}的狀態。`).join('') : '刪除這筆紀錄不會改變任何果子的狀態。'}要繼續嗎？</span>
+        <div class="ctrl"><button type="button" class="btn danger" data-del-yes="${r.local_date}">刪除</button><button type="button" class="btn" data-del-no>保留</button></div></div>`;
+    }
+    return `<li><span class="d">${r.local_date.slice(5).replace('-', '/')}</span><div class="body">${f ? Art.icon(f, 'fruit') + ' ' : ''}${esc(r.event_text) || '<span>（沒有寫第 1 題）</span>'}<br><span>${[(r.inner_reactions || []).join('、'), r.practice_text && '實踐：' + esc(r.practice_text), ck].filter(Boolean).join('　·　')}</span></div>
+      <button type="button" class="btn" data-del="${r.local_date}" aria-label="刪除 ${r.local_date} 的紀錄">刪除</button>${confirm}</li>`;
+  }).join('')}</ul>`;
+}
+
+function renderDev() {
+  const c = counters(), v = visual(), st = S.states || blankStates();
+  pane.innerHTML = `<p class="note">開發者檢視：這些數字只用於確認規則，不會出現在 App 裡。</p>
+    <div class="kv"><div>省思次數<b>${c.total_reflections}</b></div><div>有覺察的天數<b>${c.total_aware_days}</b></div><div>有省思的週數<b>${c.total_active_weeks}</b></div>
+      <div>根系等級<b>${v.roots} / 7</b></div><div>樹幹等級<b>${v.trunk} / 7</b></div><div>樹冠骨架<b>${v.skeleton ? '有' : '無'}</b></div></div>
+    <div class="scroll"><table><thead><tr><th>果子</th><th>狀態</th><th>焦點天數</th><th>覺察</th><th>計畫</th><th>實踐</th><th>週數</th><th>葉片</th><th>可達</th></tr></thead>
+    <tbody>${FRUITS.map(f => { const k = c.fruits[f.id]; return `<tr><td>${f.zh}</td><td>${STAGE_ZH[st[f.id].state]}</td><td>${k.focus_days}</td><td>${k.aware_days}</td><td>${k.planned_count}</td><td>${k.practiced_count}</td><td>${k.active_weeks}</td><td>${v.fruits[f.id].leaves}</td><td>${STAGE_ZH[Engine.eligibleState(k, RULES)]}</td></tr>`; }).join('')}</tbody></table></div>
+    <p class="note">「可達」是依目前紀錄可以到的階段；每種果子每天最多前進一階，所以「狀態」可能還在後面。門檻：種子＝焦點 1 天；花苞＝焦點 3 天且覺察 2 天；開花＝計畫 2 次且實踐 1 次；結果＝實踐 4 次且跨 3 週。</p>`;
+}
+
+/* ---------- 互動 ---------- */
+const esc = t => String(t || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function goDays(k) {
+  S.today = Engine.addDays(S.today, k); draft = null; delAsk = null; persist();
+  renderTree(true); renderPane(); say('');
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.dataset.mode) return setMode(t.dataset.mode);
+  if (t.dataset.tab) { TAB = t.dataset.tab; delAsk = null; return renderPane(); }
+  if (t.dataset.skip) return goDays(+t.dataset.skip);
+  if (t.id === 'sim') return simToggle();
+  if (t.id === 'reset') { if (t.dataset.armed) { stopSim(); S = { start: localToday(), today: localToday(), refls: [], states: null, pick: S.pick }; draft = null; persist(); lastVis = null; renderTree(); renderPane(); say('已重新開始，土裡還沒有種子。'); } else { t.dataset.armed = 1; t.textContent = '確定清除所有紀錄？'; setTimeout(() => { delete t.dataset.armed; t.textContent = '重新開始'; }, 4000); } return; }
+  if (!pane.contains(t)) return;
+  const d = draft;
+  if (t.id === 'edit') { draft = null; const ex = S.refls.find(r => r.local_date === S.today); draft = { ...ex, inner_reactions: [...(ex.inner_reactions || [])] }; return renderToday(); }
+  if (t.id === 'cancel') { draft = null; return renderToday(); }
+  if (t.id === 'fill') { d.event_text = SAMPLE_Q1[Engine.dnum(S.today) % SAMPLE_Q1.length]; return renderToday(); }
+  if (t.dataset.ck) { d.prev_practice_checkin = d.prev_practice_checkin === t.dataset.ck ? null : t.dataset.ck; return renderToday(); }
+  if (t.dataset.feel) { const i = d.inner_reactions.indexOf(t.dataset.feel); i >= 0 ? d.inner_reactions.splice(i, 1) : d.inner_reactions.push(t.dataset.feel); return renderToday(); }
+  if (t.dataset.dir) { d.direction = d.direction === t.dataset.dir ? null : t.dataset.dir; return renderToday(); }
+  if (t.dataset.fruit) { if (d.focus_fruit_id === t.dataset.fruit) { d.focus_fruit_id = null; d.practice_text = ''; } else { d.focus_fruit_id = t.dataset.fruit; d.practice_text = ''; } return renderToday(); }
+  if (t.dataset.prac) { d.practice_text = t.dataset.prac; return renderToday(); }
+  if (t.id === 'saveR') {
+    if (!d.checkin_for_date || !d.prev_practice_checkin) { d.prev_practice_checkin = null; }
+    const rec = { ...d, local_date: S.today };
+    if (!rec.prev_practice_checkin) rec.checkin_for_date = null;
+    const grown = save(rec); draft = null;
+    renderTree(true); renderToday();
+    const v = lastVis;
+    say(grown.length ? grown.join('，') + '。' : Engine.chars(rec.event_text) ? (rec.focus_fruit_id ? `今晚，「${BY[rec.focus_fruit_id].zh}」這一區被記得了。` : '沒有選也沒關係，今天的省思一樣讓根長得更深。') : '已儲存。第 1 題空白時不算一次省思。');
+    return;
+  }
+  if (t.dataset.del) { delAsk = t.dataset.del; return renderHist(); }
+  if (t.dataset.delNo !== undefined) { delAsk = null; return renderHist(); }
+  if (t.dataset.delYes) {
+    const before = S.states;
+    S.refls = S.refls.filter(r => r.local_date !== t.dataset.delYes);
+    S.states = Engine.recompute(S.states, S.refls, S.today, RULES, IDS).states; persist();
+    delAsk = null; renderTree(true); renderHist(); say('已刪除那筆紀錄。'); return;
+  }
+});
+pane.addEventListener('input', e => {
+  if (!draft) return;
+  if (e.target.id === 'q1') { draft.event_text = e.target.value; const h = document.getElementById('q1hint'); if (h) h.hidden = Engine.chars(draft.event_text) > 0; }
+  if (e.target.id === 'prac') { draft.practice_text = e.target.value; pane.querySelectorAll('[data-prac]').forEach(b => b.setAttribute('aria-pressed', b.dataset.prac === draft.practice_text)); }
+});
+
+/* ---------- 模擬 ---------- */
+const PERSONAS = {
+  regular: { p: () => .52, fav: ['peace', 'patience', 'joy', 'faithfulness'] },
+  light: { p: () => .22, fav: ['love', 'kindness'] },
+  gap: { p: n => (n >= 20 && n < 30) ? 0 : .55, fav: ['self-control', 'gentleness', 'peace'] },
+};
+let simRand = null;
+function rnd(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const pickOne = (a, r) => a[Math.floor(r() * a.length)];
+function simDay(persona, n, r) {
+  if (r() > persona.p(n) || S.refls.some(x => x.local_date === S.today)) return null;
+  const feels = r() < .85 ? [...new Set([pickOne(FEELINGS, r), ...(r() < .4 ? [pickOne(FEELINGS, r)] : [])])] : [];
+  let focus = null;
+  if (r() < .88) { const h = Engine.hintsFor(feels, HINTS); focus = r() < .6 ? pickOne(persona.fav, r) : h.length && r() < .7 ? h[0] : pickOne(IDS, r); }
+  const ck = (() => { const prev = S.refls.filter(x => x.focus_fruit_id && Engine.chars(x.practice_text) >= 4); const last = prev[prev.length - 1];
+    if (!last || S.refls.some(x => x.checkin_for_date === last.local_date)) return null; const q = r(); return { d: last.local_date, a: q < .5 ? 'done' : q < .75 ? 'partly' : q < .95 ? 'not_yet' : null }; })();
+  return { local_date: S.today, event_text: pickOne(SAMPLE_Q1, r), inner_reactions: feels, inner_other: '', direction: pickOne(DIRECTIONS, r)[0], re_response: '',
+    focus_fruit_id: focus, practice_text: focus && r() < .82 ? pickOne(BY[focus].p, r) : '', prev_practice_checkin: ck && ck.a, checkin_for_date: ck && ck.a ? ck.d : null };
+}
+function stopSim() { if (simTimer) { clearTimeout(simTimer); simTimer = null; } const b = document.getElementById('sim'); b.textContent = '快轉 8 週'; document.querySelectorAll('[data-skip],#persona').forEach(x => x.disabled = false); }
+function simToggle() {
+  if (simTimer) { stopSim(); say('已暫停模擬。'); return; }
+  const persona = PERSONAS[document.getElementById('persona').value];
+  const r = rnd(Engine.dnum(S.today) * 7 + S.refls.length);
+  const fast = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let n = 0; draft = null;
+  document.getElementById('sim').textContent = '暫停';
+  document.querySelectorAll('[data-skip],#persona').forEach(x => x.disabled = true);
+  const step = () => {
+    if (n >= 56) { stopSim(); TAB === 'today' ? renderToday() : renderPane(); say('八週的模擬跑完了。可以到「紀錄」看每一天，或到「開發者檢視」看計數。'); return; }
+    if (n > 0) S.today = Engine.addDays(S.today, 1);
+    const rec = simDay(persona, n, r);
+    let grown = [];
+    if (rec) grown = save(rec);
+    persist(); renderTree(true);
+    if (grown.length) say(grown.join('，') + '。'); else if (lastVis.returning) say('隔了一段時間又回來了，根部有一道水光流過。');
+    renderPane();
+    n++; simTimer = setTimeout(step, grown.length ? (fast ? 200 : 900) : (fast ? 60 : 320));
+  };
+  step();
+}
+
+setMode(S.pick || 'auto');
+if (!S.refls.length) say('土裡還沒有種子。寫下第一次省思，或按「快轉 8 週」。');
+</script>
+</body>
+</html>

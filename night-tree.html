@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>夜裡的燈</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700&display=swap">
+<style>
+/* Layout: 單一夜色主題。主視覺 → App 內隨階段發光的樹 → 四階段圖樣 → 選擇畫面 → 發光規則 */
+:root{
+  --night:#0B1426; --deep:#101C33; --panel:#14223B; --ink:#E9EEF6; --muted:#9BA9C2; --line:#24365A;
+  --lamp:#F6E7A8; --accent:#F2D27A; --accent-ink:#1A1608;
+  --phone-bg:linear-gradient(180deg,#101D36,#0B1426); --soft:rgba(255,255,255,.04);
+  --f-display:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  color-scheme:dark;
+}
+body.day{--night:#EDF3EA; --deep:#FFFFFF; --panel:#FFFFFF; --ink:#1E2A22; --muted:#5A6A5E; --line:#D3DECF;
+  --lamp:#7A5A12; --accent:#3E6A4C; --accent-ink:#FFFFFF; --phone-bg:linear-gradient(180deg,#FFFFFF,#F3F8F1); --soft:rgba(62,106,76,.07); color-scheme:light}
+body{transition:background 1.2s ease,color 1.2s ease}
+.seg{display:inline-flex;gap:4px;padding:4px;border-radius:99px;border:1px solid var(--line);background:var(--deep);align-self:flex-start}
+.seg button{font:inherit;font-size:13px;border:0;border-radius:99px;padding:5px 14px;cursor:pointer;background:transparent;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.modeline{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;font-size:13px;color:var(--muted)}
+.stg{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--muted);line-height:1.2;margin-top:2px;min-height:18px}
+.stg svg{width:16px!important;height:16px!important}
+*{box-sizing:border-box}
+body{margin:0;background:var(--night);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.75}
+.wrap{max-width:1180px;margin:0 auto;padding-block:40px 72px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:64px}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;margin:0;line-height:1.3;text-wrap:balance}
+h1{font-size:clamp(28px,4.4vw,40px);letter-spacing:.04em}
+h2{font-size:22px}
+p{margin:0}
+.eyebrow{font-size:12px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+.lede{color:var(--muted);max-width:64ch}
+.sec{display:flex;flex-direction:column;gap:16px}
+.hero{display:flex;flex-direction:column;gap:18px}
+.hero header{display:flex;flex-direction:column;gap:8px}
+.verse{font-family:var(--f-display);color:var(--lamp);opacity:.9;font-size:15px;letter-spacing:.06em}
+svg.scene{width:100%;height:auto;display:block;border-radius:22px;box-shadow:0 30px 70px -40px #000}
+.two{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:32px;align-items:center}
+@media (max-width:860px){.two{grid-template-columns:minmax(0,1fr)}}
+.keys{display:flex;flex-direction:column;gap:14px}
+.key{display:grid;grid-template-columns:52px minmax(0,1fr);gap:12px;align-items:center}
+.key svg{width:52px;height:52px}
+.key b{font-family:var(--f-display);font-size:16px}
+.key p{color:var(--muted);font-size:13.5px}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:18px;background:var(--deep)}
+table{border-collapse:collapse;width:100%;min-width:560px}
+th,td{padding:8px 10px;text-align:center;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+thead th{font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.06em}
+thead th span{display:block;font-family:var(--f-display);font-size:15px;color:var(--ink);letter-spacing:0}
+td.name{text-align:left;white-space:nowrap}
+td.name b{font-family:var(--f-display);font-size:15px}
+td.name small{display:block;color:var(--muted);font-size:11px}
+td svg{width:64px;height:64px;display:block;margin:auto}
+
+.phone{background:var(--phone-bg);border:1px solid var(--line);border-radius:28px;padding:20px 16px 22px;
+  display:flex;flex-direction:column;gap:14px;max-width:390px;width:100%;margin-inline:auto}
+.phone .step{font-size:12px;color:var(--muted)}
+.phone h3{font-size:20px}
+.phone .sub{font-size:13px;color:var(--muted)}
+.pv{font-family:var(--f-display);font-size:13.5px;line-height:1.9;color:var(--muted);padding:10px 12px;border-radius:12px;background:var(--soft)}
+.pv b{font-weight:500;transition:color 1.4s ease,text-shadow 1.4s ease}
+.pv b.lit{color:var(--c);text-shadow:0 0 12px var(--c);font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.card{display:flex;flex-direction:column;align-items:center;gap:0;padding:8px 4px 10px;border-radius:18px;border:1px solid transparent;
+  background:transparent;color:var(--ink);font:inherit;cursor:pointer;transition:opacity .8s ease,background .8s ease,border-color .8s ease}
+.card svg{width:72px;height:72px;overflow:visible}
+.card .zh{font-family:var(--f-display);font-size:15px;font-weight:700}
+.card .en{font-size:10px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+.card:focus-visible,.primary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.card .halo{opacity:var(--g,.35);transition:opacity 1.6s ease}
+.card.dormant .art{opacity:.8}
+.grid.has .card{opacity:.45}
+.grid.has .card.sel{opacity:1;border-color:color-mix(in srgb,var(--c) 55%,transparent);background:color-mix(in srgb,var(--c) 10%,transparent)}
+.card.sel .halo{opacity:1}
+.primary{font:inherit;font-weight:500;font-size:15px;padding:12px;border-radius:14px;border:0;cursor:pointer;background:var(--accent);color:var(--accent-ink)}
+.primary[disabled]{opacity:.4;cursor:default}
+.pickwrap{display:grid;grid-template-columns:minmax(0,390px) minmax(0,1fr);gap:40px;align-items:start}
+@media (max-width:860px){.pickwrap{grid-template-columns:minmax(0,1fr)}}
+.rules{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:14px}
+.rules li{padding-left:16px;border-left:2px solid var(--line)}
+.rules b{display:block;font-size:15px}
+.rules span{color:var(--muted);font-size:13.5px}
+.rules code{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;color:var(--lamp)}
+
+@keyframes breathe{from{opacity:.55}to{opacity:1}}
+@keyframes twinkle{from{opacity:.15}to{opacity:.9}}
+@keyframes drift{0%{transform:translate(0,0)}50%{transform:translate(14px,-18px)}100%{transform:translate(-10px,6px)}}
+.br{animation:breathe var(--d,3.6s) ease-in-out var(--dl,0s) infinite alternate}
+.tw{animation:twinkle var(--d,3s) ease-in-out var(--dl,0s) infinite alternate}
+.ff{transform-box:fill-box;animation:drift var(--d,9s) ease-in-out var(--dl,0s) infinite alternate}
+@media (prefers-reduced-motion:reduce){.br,.tw,.ff{animation:none}.card,.card .halo,.pv b{transition:none}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <filter id="blur" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="7"/></filter>
+  <filter id="blurBig" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="26"/></filter>
+  <filter id="blurSm" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="2.5"/></filter>
+</defs></svg>
+
+<div class="wrap">
+  <section class="hero">
+    <header>
+      <span class="eyebrow">Tree of Life · 主視覺 C ＋ 白天版</span>
+      <h1>夜裡的燈</h1>
+      <div class="modeline"><div class="seg" role="group" aria-label="白天或夜晚">
+        <button type="button" data-mode="auto">依時間</button><button type="button" data-mode="day">白天</button><button type="button" data-mode="night">夜晚</button></div>
+        <span id="modeNote"></span></div>
+      <p class="verse">聖靈所結的果子，就是仁愛、喜樂、和平、忍耐、恩慈、良善、信實、溫柔、節制。</p>
+    </header>
+    <div id="hero"></div>
+    <p class="lede">九種果子像小燈籠一樣掛在樹上，各自照亮身邊的葉子。省思大多在睡前，打開 App 時看到的是一棵安靜亮著的樹，而不是一張要完成的清單。白天版用同一棵樹、同樣的位置與造型，只換成晨光，光暈調淡，果子本身的顏色變成主角。</p>
+  </section>
+
+  <section class="sec">
+    <h2>在 App 裡：光跟著生長變亮</h2>
+    <div class="two">
+      <div id="app"></div>
+      <div class="keys" id="keys"></div>
+    </div>
+    <p class="lede">示範資料：仁愛已結果，喜樂、節制在開花，和平、恩慈是花苞，忍耐、信實是種子，良善、溫柔還沒開始（那一區只有葉子，沒有空位或灰框）。今天的焦點是和平，所以那一區的光會慢慢呼吸。</p>
+  </section>
+
+  <section class="sec">
+    <h2>四個階段的圖樣</h2>
+    <p class="lede">越往後越亮。種子只是一點微光，結果時連周圍的葉子都被照亮。同一階段九種果子共用同一種畫法，只換形狀和顏色。</p>
+    <div class="scroll"><table id="stages"></table></div>
+  </section>
+
+  <section class="sec">
+    <h2>選擇畫面</h2>
+    <div class="pickwrap">
+      <div class="phone" id="phone"></div>
+      <div class="sec">
+        <h3>發光的規則</h3>
+        <ul class="rules">
+          <li><b>亮度代表階段，不代表分數</b><span>種子、花苞、開花、結果的光暈不透明度依序約 <code>0.25 / 0.4 / 0.55 / 0.75</code>。沒有數字、沒有進度條。</span></li>
+          <li><b>每種果子用自己的顏色發光</b><span>光暈用果子顏色加上花色，所以九區的光色都不同，從遠處也看得出哪一區是哪一種果子。</span></li>
+          <li><b>動畫都很慢</b><span>呼吸光 3–5 秒一循環，九顆錯開節奏；新長出的階段用 2 秒以上淡入。系統設定「減少動態效果」時全部停住。</span></li>
+          <li><b>還沒開始的果子不顯示</b><span>那一區就是正常的葉子，不放灰色剪影或鎖頭，避免讓人覺得「還缺幾顆」。</span></li>
+          <li><b>格子上看得到自己的階段</b><span>果子圖的亮度跟樹上一樣代表目前階段，下方一個小標籤寫階段名稱；還沒選過的果子照樣畫出來，只是不發光。</span></li>
+          <li><b>白天與夜晚依時間切換</b><span>06:00–17:59 白天，其餘夜晚，打開 App 時判斷一次。白天光暈 × 0.6，同一套素材。</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+const F=[
+ {id:'love',zh:'仁愛',en:'Love',c:'#E0534A',fl:'#FFC9C2',k:'apple'},
+ {id:'joy',zh:'喜樂',en:'Joy',c:'#F2B934',fl:'#FFEDB5',k:'citrus'},
+ {id:'peace',zh:'和平',en:'Peace',c:'#5B9BE0',fl:'#CFE3FA',k:'oval'},
+ {id:'patience',zh:'忍耐',en:'Patience',c:'#B0767C',fl:'#F1D6DE',k:'fig'},
+ {id:'kindness',zh:'恩慈',en:'Kindness',c:'#F0813A',fl:'#FFDDC2',k:'persimmon'},
+ {id:'goodness',zh:'良善',en:'Goodness',c:'#7FC255',fl:'#D8F2C8',k:'pear'},
+ {id:'faithfulness',zh:'信實',en:'Faithfulness',c:'#6A7FD6',fl:'#DCE2FA',k:'cluster'},
+ {id:'gentleness',zh:'溫柔',en:'Gentleness',c:'#B985D6',fl:'#F1E2F8',k:'plum'},
+ {id:'self-control',zh:'節制',en:'Self-control',c:'#C9B53A',fl:'#F6EBA8',k:'gourd'},
+];
+const BY=Object.fromEntries(F.map(f=>[f.id,f]));
+const STAGES=['seed','bud','flower','fruit'], ZH={seed:'種子',bud:'花苞',flower:'開花',fruit:'結果'};
+const GLOW={seed:.25,bud:.4,flower:.55,fruit:.75};
+const LEAF='#3E7A5A', STEM='#6A5340';
+const hx=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+const mix=(a,b,t)=>{const A=hx(a),B=hx(b);return '#'+A.map((v,i)=>Math.round(v+(B[i]-v)*t).toString(16).padStart(2,'0')).join('')};
+let UID=0;
+function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+
+function geom(f,fill){
+  const s=`fill="${fill}"`, dk=mix(f.c,'#000000',.35);
+  switch(f.k){
+    case 'apple':return{top:38,shape:`<path ${s} d="M50 38 C 40 29, 21 32, 21 55 C 21 75, 35 88, 50 85 C 65 88, 79 75, 79 55 C 79 32, 60 29, 50 38 Z"/>`,
+      extra:`<path fill="${mix(f.c,'#ffffff',.45)}" opacity=".8" d="M43 66 C 33 59, 34 50, 40 50 C 42 50, 43 52, 43 53 C 43 52, 44 50, 46 50 C 52 50, 53 59, 43 66 Z"/>`,hl:[36,48,7,4.5,-30]};
+    case 'citrus':return{top:34,shape:`<circle ${s} cx="50" cy="60" r="26"/>`,extra:`<g fill="${dk}" opacity=".2"><circle cx="58" cy="70" r="1.2"/><circle cx="64" cy="62" r="1.2"/><circle cx="55" cy="78" r="1.2"/><circle cx="66" cy="72" r="1.2"/></g>`,hl:[40,48,7,4.5,-30]};
+    case 'oval':return{top:34,shape:`<ellipse ${s} cx="50" cy="60" rx="21" ry="26"/>`,extra:'',hl:[42,47,5,7,-15]};
+    case 'fig':return{top:30,shape:`<path ${s} d="M50 30 C 55 30, 57 39, 62 46 C 77 58, 75 84, 50 85 C 25 84, 23 58, 38 46 C 43 39, 45 30, 50 30 Z"/>`,
+      extra:`<g stroke="${dk}" stroke-width="1.1" fill="none" opacity=".35"><path d="M42 50 Q36 66 42 82"/><path d="M58 50 Q64 66 58 82"/><path d="M50 46 L50 84"/></g>`,hl:[39,62,4.5,8,15]};
+    case 'persimmon':return{top:40,shape:`<ellipse ${s} cx="50" cy="62" rx="29" ry="23"/>`,
+      extra:`<g fill="${LEAF}"><ellipse cx="42" cy="41" rx="9" ry="3.4" transform="rotate(-14 42 41)"/><ellipse cx="58" cy="41" rx="9" ry="3.4" transform="rotate(14 58 41)"/><ellipse cx="50" cy="44" rx="3.4" ry="5"/></g>`,hl:[38,53,7,4,-20]};
+    case 'pear':return{top:22,shape:`<path ${s} d="M50 22 C 57 22, 58 36, 62 46 C 78 62, 71 87, 50 87 C 29 87, 22 62, 38 46 C 42 36, 43 22, 50 22 Z"/>`,extra:'',hl:[40,64,5,9,15]};
+    case 'cluster':{const p=[[29,38],[43,38],[57,38],[71,38],[36,51],[50,51],[64,51],[43,64],[57,64],[50,77]];
+      return{top:29,cluster:p,shape:p.map(([x,y])=>`<circle ${s} cx="${x}" cy="${y}" r="9"/>`).join(''),extra:'',hl:null};}
+    case 'plum':return{top:35,shape:`<ellipse ${s} cx="50" cy="61" rx="24" ry="25"/>`,extra:`<path d="M52 37 Q60 60 52 85" stroke="${dk}" stroke-width="1.4" fill="none" opacity=".35"/>`,hl:[38,50,6,5,-30]};
+    case 'gourd':return{top:33,shape:`<ellipse ${s} cx="50" cy="61" rx="23" ry="27"/>`,
+      extra:`<g stroke="${dk}" stroke-width="1.3" fill="none" opacity=".35"><path d="M50 35 L50 87"/><path d="M50 35 Q36 60 50 87"/><path d="M50 35 Q64 60 50 87"/><path d="M50 35 Q27 60 50 87"/><path d="M50 35 Q73 60 50 87"/></g>`,hl:[39,52,4.5,8,-10]};
+  }
+}
+const halo=(f,o,cy=60,r=40,cls='halo',sty='')=>`<g opacity="${Math.min(o,1)}"><g class="${cls}" style="${sty}"><circle cx="50" cy="${cy}" r="${r}" fill="${f.fl}" opacity=".55" filter="url(#blur)"/><circle cx="50" cy="${cy}" r="${r*.6}" fill="${f.c}" opacity=".6" filter="url(#blur)"/></g></g>`;
+function fruitArt(f){
+  const id='g'+(UID++), g=geom(f,`url(#${id})`);
+  const stem=f.k==='persimmon'?`<path d="M50 42 L51 35" stroke="${STEM}" stroke-width="3" stroke-linecap="round"/>`
+    :`<path d="M50 ${g.top+2} C 50 ${g.top-6}, 51 ${g.top-12}, 55 ${g.top-16}" stroke="${STEM}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+  const lx=53,ly=g.top-9;
+  const leaf=`<path d="M${lx} ${ly} C ${lx+8} ${ly-12}, ${lx+22} ${ly-13}, ${lx+29} ${ly-7} C ${lx+21} ${ly+3}, ${lx+9} ${ly+5}, ${lx} ${ly} Z" fill="${LEAF}"/>`;
+  let hl='';
+  if(g.cluster)hl=g.cluster.map(([x,y])=>`<circle cx="${x-3}" cy="${y-3.5}" r="2.3" fill="#fff" opacity=".6"/>`).join('');
+  else{const[x,y,rx,ry,r]=g.hl;hl=`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" transform="rotate(${r} ${x} ${y})" fill="#fff" opacity=".55"/>`}
+  return `<defs><radialGradient id="${id}" cx="40%" cy="38%" r="75%"><stop offset="0" stop-color="${mix(f.fl,'#ffffff',.3)}"/><stop offset=".45" stop-color="${f.c}"/><stop offset="1" stop-color="${mix(f.c,'#000000',.25)}"/></radialGradient></defs>${stem}${leaf}${g.shape}${g.extra}${hl}`;
+}
+function stageArt(st,f){
+  const id='s'+(UID++);
+  const gr=`<defs><radialGradient id="${id}" cx="45%" cy="40%" r="70%"><stop offset="0" stop-color="#ffffff"/><stop offset=".35" stop-color="${f.fl}"/><stop offset="1" stop-color="${f.c}"/></radialGradient></defs>`;
+  if(st==='seed')return gr+`<circle cx="50" cy="58" r="7" fill="url(#${id})"/><circle cx="50" cy="58" r="2.5" fill="#fff" opacity=".9"/>`;
+  if(st==='bud')return gr+`<path d="M50 30 C 63 41, 63 57, 50 66 C 37 57, 37 41, 50 30 Z" fill="url(#${id})"/><path d="M39 60 Q50 76 61 60 Q55 69 50 70 Q45 69 39 60 Z" fill="${LEAF}"/><path d="M50 70 L50 82" stroke="${LEAF}" stroke-width="3" stroke-linecap="round"/>`;
+  if(st==='flower'){const p=[0,72,144,216,288].map(a=>`<ellipse cx="50" cy="42" rx="10" ry="15" transform="rotate(${a} 50 57)" fill="url(#${id})" opacity=".95"/>`).join('');
+    return gr+p+`<circle cx="50" cy="57" r="7" fill="${f.c}"/><circle cx="50" cy="57" r="3" fill="#fff" opacity=".8"/>`;}
+  return fruitArt(f);
+}
+const art=(st,f,withHalo=true,cls)=>`${withHalo?halo(f,GLOW[st],st==='fruit'?60:57,st==='seed'?22:st==='fruit'?42:34,cls):''}${stageArt(st,f)}`;
+
+/* ---------- scene ---------- */
+const PAL={
+  night:{sky:['#070E1E','#132747','#1F3D62'],trunk:['#21180F','#3D2D20'],hill:'#12241E',ground:'#0B1A14',grass:'#1E3A2C',leaves:['#173229','#1B3A30','#204337','#264C3E'],halo:1,wash:1,blend:'screen',ff:18},
+  day:{sky:['#8CCBEF','#DDF0F4','#FFF3D6'],trunk:['#6E4528','#A0703F'],hill:'#8CC463',ground:'#6DAE45',grass:'#4F8E34',leaves:['#3F7E2E','#4C8F35','#5EA03F','#72B24B'],halo:.6,wash:.45,blend:'normal',ff:8}};
+let MODE='night', PICK='auto';
+function scene(state,focus,label,washK=1){
+  const P=PAL[MODE];
+  const R=rng(11), cx=400,cy=250,rx=300,ry=165;
+  let s=`<defs><linearGradient id="sky${UID}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.sky[0]}"/><stop offset=".65" stop-color="${P.sky[1]}"/><stop offset="1" stop-color="${P.sky[2]}"/></linearGradient>
+    <linearGradient id="tr${UID}" x1="0" x2="1"><stop offset="0" stop-color="${P.trunk[0]}"/><stop offset=".55" stop-color="${P.trunk[1]}"/><stop offset="1" stop-color="${P.trunk[0]}"/></linearGradient>
+    <radialGradient id="sun${UID}"><stop offset="0" stop-color="#FFF3C4"/><stop offset="1" stop-color="#FFF3C4" stop-opacity="0"/></radialGradient></defs>`;
+  const sun=`sun${UID}`;
+  const sky=`sky${UID}`, tr=`tr${UID}`; UID++;
+  s+=`<rect width="800" height="560" fill="url(#${sky})"/>`;
+  if(MODE==='day'){s+=`<circle cx="680" cy="80" r="170" fill="url(#${sun})"/><circle cx="680" cy="80" r="30" fill="#FFF6D8"/>
+    <g fill="#fff" opacity=".85"><ellipse cx="120" cy="90" rx="70" ry="20"/><ellipse cx="160" cy="78" rx="44" ry="22"/><ellipse cx="560" cy="150" rx="60" ry="16"/><ellipse cx="590" cy="140" rx="34" ry="16"/></g>`;}
+  else for(let i=0;i<90;i++){const x=R()*800,y=R()*300,r=R()*1.4+.3;s+=`<circle class="${i%3?'':'tw'}" style="--d:${(2+R()*3).toFixed(1)}s;--dl:${(R()*3).toFixed(1)}s" cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${r.toFixed(1)}" fill="#FFF6D6" opacity="${(.3+R()*.6).toFixed(2)}"/>`}
+  if(MODE==='night')s+=`<circle cx="672" cy="82" r="30" fill="#FFF6D6" opacity=".12" filter="url(#blur)"/><circle cx="672" cy="82" r="22" fill="#FFF3CF"/><circle cx="682" cy="75" r="20" fill="#0A1325"/>`;
+  s+=`<path d="M0 452 Q200 404 400 452 T800 442 L800 560 L0 560Z" fill="${P.hill}"/><path d="M0 505 Q400 478 800 505 L800 560 L0 560Z" fill="${P.ground}"/>`;
+  /* grass tufts */
+  for(let i=0;i<60;i++){const x=R()*800,y=508+R()*48,h=6+R()*10;s+=`<path d="M${x.toFixed(0)} ${y.toFixed(0)} q2 ${-h} 4 ${-h*1.1} M${(x+3).toFixed(0)} ${y.toFixed(0)} q3 ${-h*.8} 7 ${-h*.7}" stroke="${P.grass}" stroke-width="1.4" fill="none"/>`}
+  /* trunk */
+  s+=`<path fill="url(#${tr})" d="M352 528 C 372 500, 382 450, 380 380 C 372 340, 330 300, 270 296 L 276 284 C 330 284, 368 306, 386 336 C 388 300, 392 270, 392 240 L 408 240 C 408 270, 412 300, 414 336 C 432 306, 470 284, 524 284 L 530 296 C 470 300, 428 340, 420 380 C 418 450, 428 500, 448 528 C 420 522, 380 522, 352 528 Z"/>`;
+  /* foliage */
+  const blobs=[];for(let i=0;i<64;i++){const a=R()*Math.PI*2,d=Math.sqrt(R());blobs.push([cx+Math.cos(a)*d*rx*.86,cy+Math.sin(a)*d*ry*.84,46+R()*40])}
+  blobs.sort((p,q)=>p[1]-q[1]);
+  const L=P.leaves;
+  s+=`<path fill="${L[0]}" d="${cloud(cx,cy+6,rx*.98,ry*.95,16,R)}"/>`;
+  s+=blobs.map(([x,y,r])=>{const t=(y-(cy-ry))/(2*ry);const ci=Math.max(0,Math.min(3,Math.round((1-t)*3+(R()-.5))));return `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${r.toFixed(0)}" fill="${L[ci]}"/>`}).join('');
+  /* placements */
+  const spots={};F.forEach((f,i)=>{const base=162+i*27;
+    spots[f.id]=[[0,.84,.84],[-7,.5,.76],[9,.68,.7]].map(([da,r,sc])=>{const a=(base+da)*Math.PI/180;return[cx+Math.cos(a)*rx*r,cy+44+Math.sin(a)*ry*r*1.05,sc]})});
+  /* light washing over leaves */
+  let wash='';F.forEach(f=>{const st=state[f.id];if(!st||st==='dormant')return;const [x,y]=spots[f.id][st==='fruit'?0:2];
+    const k=GLOW[st];wash+=`<circle class="${focus===f.id?'br':''}" style="--d:3.2s" cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${(40+k*90*washK).toFixed(0)}" fill="${f.c}" opacity="${(k*.55*washK*P.wash).toFixed(2)}" filter="url(#blurBig)"/>`});
+  s+=`<g style="mix-blend-mode:${P.blend}">${wash}</g>`;
+  /* items */
+  const items=[];
+  F.forEach((f,i)=>{const st=state[f.id];if(!st||st==='dormant')return;
+    const list=st==='fruit'?spots[f.id]:[spots[f.id][2]];
+    list.forEach(([x,y,sc],j)=>{const scale=st==='fruit'?sc:st==='seed'?.9:.8;
+      const d=(3+((i*7+j*3)%5)*.45).toFixed(1), dl=((i*.37+j*.6)%2.5).toFixed(1);
+      items.push([y,`<g transform="translate(${(x-50*scale).toFixed(1)} ${(y-58*scale).toFixed(1)}) scale(${scale})">${halo(f,GLOW[st]*(focus===f.id?1.3:1)*P.halo,st==='fruit'?60:57,st==='seed'?22:st==='fruit'?42:34,'br',`--d:${d}s;--dl:${dl}s`)}${stageArt(st,f)}</g>`]);});
+  });
+  items.sort((a,b)=>a[0]-b[0]);s+=items.map(i=>i[1]).join('');
+  /* fireflies */
+  for(let i=0;i<P.ff;i++){const x=80+R()*640,y=200+R()*320;s+=`<g class="ff" style="--d:${(7+R()*6).toFixed(1)}s;--dl:${(R()*4).toFixed(1)}s"><circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="5" fill="#F8F2A0" opacity=".5" filter="url(#blurSm)"/><circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="1.4" fill="#FFFBE0"/></g>`}
+  return `<svg class="scene" viewBox="0 0 800 560" role="img" aria-label="${label}">${s}</svg>`;
+}
+function cloud(cx,cy,rx,ry,n,R){
+  let pts=[];for(let i=0;i<n;i++){const a=i/n*Math.PI*2,j=.9+R()*.18;pts.push([cx+Math.cos(a)*rx*j,cy+Math.sin(a)*ry*j])}
+  let d=`M${pts[0][0].toFixed(0)} ${pts[0][1].toFixed(0)}`;
+  for(let i=0;i<n;i++){const p=pts[i],q=pts[(i+1)%n];const mx=(p[0]+q[0])/2,my=(p[1]+q[1])/2;const ox=mx-cx,oy=my-cy,l=Math.hypot(ox,oy);
+    d+=` Q${(mx+ox/l*Math.min(rx,ry)*.28).toFixed(0)} ${(my+oy/l*Math.min(rx,ry)*.28).toFixed(0)} ${q[0].toFixed(0)} ${q[1].toFixed(0)}`}
+  return d+'Z';
+}
+const svg=(inner,cls='')=>`<svg viewBox="0 0 100 100" ${cls}aria-hidden="true" style="overflow:visible">${inner}</svg>`;
+
+const FULL=Object.fromEntries(F.map(f=>[f.id,'fruit']));
+const SAMPLE={love:'fruit',joy:'flower',peace:'bud',patience:'seed',kindness:'bud',goodness:'dormant',faithfulness:'seed',gentleness:'dormant','self-control':'flower'};
+const autoMode=()=>{const h=new Date().getHours();return h>=6&&h<18?'day':'night'};
+function renderScenes(){
+  document.getElementById('hero').innerHTML=scene(FULL,null,MODE==='day'?'晨光下結滿九種果子的樹':'夜空下結滿九種發光果子的樹',.45);
+  document.getElementById('app').innerHTML=scene(SAMPLE,'peace','App 內的示範樹，各果子停在不同階段');
+}
+function setMode(pick){
+  PICK=pick; MODE=pick==='auto'?autoMode():pick;
+  document.body.classList.toggle('day',MODE==='day');
+  document.querySelectorAll('.seg [data-mode]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===pick));
+  document.getElementById('modeNote').textContent=pick==='auto'?`現在顯示${MODE==='day'?'白天':'夜晚'}版（06:00–17:59 白天，其餘時間夜晚）`:'手動切換：App 設定中可固定白天或夜晚';
+  renderScenes(); if(typeof renderPhone==='function')renderPhone();
+}
+document.querySelector('.seg').addEventListener('click',e=>{const b=e.target.closest('[data-mode]');if(b)setMode(b.dataset.mode)});
+MODE=autoMode(); document.body.classList.toggle('day',MODE==='day'); renderScenes();
+document.getElementById('keys').innerHTML=STAGES.map((st,i)=>{const f=[F[6],F[2],F[1],F[0]][i];
+  const t={seed:'開始認識。只是一點微光，還看不出是哪種果子。',bud:'開始覺察。花苞帶著果子的顏色，光開始照到葉子。',flower:'開始實踐。花完全打開，周圍一圈被染上顏色。',fruit:'持續成熟。三顆果子一起亮，整個區塊都被照亮。'}[st];
+  return `<div class="key">${svg(art(st,f))}<div><b>${ZH[st]}</b><p>${t}</p></div></div>`}).join('');
+document.getElementById('stages').innerHTML=`<thead><tr><th></th>${STAGES.map(s=>`<th><span>${ZH[s]}</span>${s}</th>`).join('')}</tr></thead>
+<tbody>${F.map(f=>`<tr><td class="name"><b>${f.zh}</b><small>${f.en}</small></td>${STAGES.map(s=>`<td>${svg(art(s,f))}</td>`).join('')}</tr>`).join('')}</tbody>`;
+
+/* ---------- picker ---------- */
+let sel=null;const phone=document.getElementById('phone');
+function renderPhone(){
+  phone.innerHTML=`<span class="step">今日省思 · 第 5 步</span>
+    <div><h3>今天想留意哪一個果子？</h3><p class="sub">選一個就好，也可以今天先不選。</p></div>
+    <div class="pv">聖靈所結的果子，就是${F.map(f=>`<b style="--c:${f.c}" class="${sel===f.id?'lit':''}">${f.zh}</b>`).join('、')}。</div>
+    <div class="grid${sel?' has':''}">${F.map(f=>{const st=SAMPLE[f.id],g=st==='dormant'?0:GLOW[st]*PAL[MODE].halo*1.2;
+      return `<button type="button" class="card${sel===f.id?' sel':''}${st==='dormant'?' dormant':''}" data-id="${f.id}" aria-pressed="${sel===f.id}" style="--c:${f.c};--g:${g.toFixed(2)}" aria-label="${f.zh}，${st==='dormant'?'還沒選過':'目前'+ZH[st]}">
+      ${svg(halo(f,1)+`<g class="art">${fruitArt(f)}</g>`)}<span class="zh">${f.zh}</span><span class="en">${f.en}</span>
+      <span class="stg">${st==='dormant'?'還沒選過':svg(stageArt(st,f))+ZH[st]}</span></button>`}).join('')}</div>
+    <button type="button" class="primary" ${sel?'':'disabled'}>${sel?`以「${BY[sel].zh}」作為今天的留意`:'選一個果子'}</button>`;
+}
+phone.addEventListener('click',e=>{const c=e.target.closest('[data-id]');if(!c)return;sel=sel===c.dataset.id?null:c.dataset.id;renderPhone();
+  const b=phone.querySelector(`[data-id="${sel}"]`);if(b)b.focus()});
+setMode('auto');
+</script>
+</body>
+</html>

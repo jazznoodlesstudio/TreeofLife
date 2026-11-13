@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>九果選擇提案</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700&display=swap">
+<style>
+/* Layout: 左邊是可操作的手機選擇畫面，右邊是設計理由；下方是九果×四階的圖樣表與色票對照 */
+:root{
+  --bg:#F1F4EE; --surface:#FFFFFF; --ink:#1E2A22; --muted:#5C6A60; --line:#D7DED3;
+  --accent:#3E6A4C; --accent-ink:#FFFFFF;
+  --stem:#6E5741; --leaf:#6E9A5A; --vein:#4F7740; --soil:#D2C4AC; --bark:#7C644C;
+  --rim:rgba(0,0,0,.10); --tint:14%; --dim:.5;
+  --f-display:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --f-mono:ui-monospace,"SF Mono",Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0F1511; --surface:#18201B; --ink:#E2E8E0; --muted:#98A69C; --line:#2B362F;
+  --accent:#8CBB97; --accent-ink:#0F1511;
+  --stem:#A68C70; --leaf:#7DA866; --vein:#5D8A4B; --soil:#4B4134; --bark:#8C7357;
+  --rim:rgba(255,255,255,.22); --tint:22%; --dim:.42; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0F1511; --surface:#18201B; --ink:#E2E8E0; --muted:#98A69C; --line:#2B362F;
+  --accent:#8CBB97; --accent-ink:#0F1511;
+  --stem:#A68C70; --leaf:#7DA866; --vein:#5D8A4B; --soil:#4B4134; --bark:#8C7357;
+  --rim:rgba(255,255,255,.22); --tint:22%; --dim:.42; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.7}
+.wrap{max-width:1120px;margin:0 auto;padding-block:40px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:56px}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;text-wrap:balance;margin:0;line-height:1.3}
+h1{font-size:clamp(26px,4vw,34px)}
+h2{font-size:22px}
+.eyebrow{font-size:12px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+p{margin:0}
+.lede{color:var(--muted);max-width:62ch}
+header{display:flex;flex-direction:column;gap:8px}
+
+/* ---------- top: phone + notes ---------- */
+.top{display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:48px;align-items:start}
+@media (max-width:860px){.top{grid-template-columns:minmax(0,1fr)}}
+.phone{background:var(--surface);border:1px solid var(--line);border-radius:28px;padding:20px 16px 22px;
+  display:flex;flex-direction:column;gap:16px;max-width:400px;width:100%;box-shadow:0 18px 40px -28px rgba(20,40,25,.35)}
+.step{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted)}
+.dots{display:flex;gap:5px}
+.dots i{width:6px;height:6px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--accent)}
+.q h3{font-size:20px}
+.q p{font-size:13px;color:var(--muted)}
+.verse{font-family:var(--f-display);font-size:13.5px;line-height:1.9;color:var(--muted);
+  padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--accent) 7%,var(--surface))}
+.verse b{font-weight:500;transition:color 1.2s ease}
+.verse b.lit{color:var(--c);font-weight:700}
+.verse small{display:block;font-family:var(--f-body);font-size:11px;letter-spacing:.04em}
+.hint{font-size:12.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.hint button{font:inherit;font-size:12px;border:1px dashed var(--line);background:transparent;color:var(--ink);
+  border-radius:99px;padding:2px 10px;cursor:pointer}
+
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.card{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:10px 4px 10px;border-radius:18px;border:1.5px solid transparent;background:transparent;
+  color:var(--ink);font:inherit;cursor:pointer;transition:background .6s ease,opacity .6s ease,border-color .6s ease}
+.card:hover{background:color-mix(in srgb,var(--fl) var(--tint),var(--surface))}
+.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.card svg{width:64px;height:64px;transition:transform 1.2s cubic-bezier(.2,.7,.2,1)}
+.card .zh{font-family:var(--f-display);font-size:15px;font-weight:700;line-height:1.4}
+.card .en{font-size:10.5px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+.card.rec{border:1.5px dashed color-mix(in srgb,var(--c) 55%,transparent)}
+.card .tag{position:absolute;top:6px;right:6px;font-size:10px;line-height:1;padding:3px 6px;border-radius:99px;
+  background:color-mix(in srgb,var(--c) 14%,var(--surface));color:var(--ink)}
+.grid.has-sel .card{opacity:var(--dim)}
+.grid.has-sel .card.sel{opacity:1;background:color-mix(in srgb,var(--fl) calc(var(--tint) * 3),var(--surface));border-color:var(--c)}
+.card.sel svg{transform:scale(1.08)}
+
+.sheet{display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:18px;
+  background:color-mix(in srgb,var(--fl) calc(var(--tint) * 1.6),var(--surface));border:1px solid color-mix(in srgb,var(--c) 25%,var(--line))}
+.sheet-head{display:flex;gap:12px;align-items:center}
+.sheet-head svg{width:68px;height:68px;flex:none}
+.sheet-head h4{margin:0;font-family:var(--f-display);font-size:19px}
+.sheet-head .meta{font-size:12px;color:var(--muted)}
+.sheet .desc{font-size:13.5px}
+.mine{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+.mine svg{width:30px;height:30px}
+.ask{font-size:13.5px;border-left:3px solid var(--c);padding-left:10px}
+.lbl{font-size:12px;color:var(--muted);letter-spacing:.04em}
+.chips{display:flex;flex-direction:column;gap:6px}
+.chips button{font:inherit;font-size:13px;text-align:left;padding:7px 12px;border-radius:12px;cursor:pointer;
+  border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.chips button[aria-pressed="true"]{border-color:var(--c);box-shadow:inset 0 0 0 1px var(--c)}
+textarea{font:inherit;font-size:13.5px;width:100%;min-height:60px;resize:vertical;padding:8px 10px;border-radius:12px;
+  border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.actions{display:flex;flex-direction:column;gap:8px;align-items:stretch}
+.primary{font:inherit;font-weight:500;font-size:15px;padding:12px;border-radius:14px;border:0;cursor:pointer;
+  background:var(--accent);color:var(--accent-ink)}
+.primary:focus-visible,.ghost:focus-visible,.chips button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ghost{font:inherit;font-size:13px;background:none;border:0;color:var(--muted);cursor:pointer;padding:6px;text-decoration:underline;text-underline-offset:3px}
+
+.done{display:flex;flex-direction:column;gap:14px;align-items:stretch;text-align:center}
+.done svg.tree{width:100%;height:auto}
+.done .msg{font-family:var(--f-display);font-size:17px}
+.done .sub{font-size:13px;color:var(--muted)}
+.sample{font-size:11px;color:var(--muted);text-align:center}
+
+.notes{display:flex;flex-direction:column;gap:22px;padding-top:8px}
+.notes ol{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:18px;counter-reset:n}
+.notes li{display:grid;grid-template-columns:28px minmax(0,1fr);gap:4px 10px;counter-increment:n}
+.notes li::before{content:counter(n);font-family:var(--f-display);font-weight:700;color:var(--accent);font-size:17px;line-height:1.5}
+.notes li h3{font-size:16px;font-family:var(--f-body);font-weight:700;grid-column:2}
+.notes li p{grid-column:2;color:var(--muted);font-size:14px;max-width:60ch}
+
+/* ---------- stages table ---------- */
+.sec{display:flex;flex-direction:column;gap:16px}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:18px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:560px}
+th,td{padding:8px 10px;text-align:center;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+thead th{font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.06em}
+thead th span{display:block;font-family:var(--f-display);font-size:15px;color:var(--ink);letter-spacing:0}
+td.name{text-align:left;white-space:nowrap}
+td.name b{font-family:var(--f-display);font-size:15px}
+td.name small{display:block;color:var(--muted);font-size:11px}
+td svg{width:60px;height:60px;display:block;margin:auto}
+
+/* ---------- palette ---------- */
+.pal{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.sw{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:center;padding:12px;border-radius:14px;background:var(--surface);border:1px solid var(--line)}
+.sw .pair{display:flex;align-items:center;gap:4px;grid-row:span 2}
+.sw .pair i{width:26px;height:26px;border-radius:50%;box-shadow:inset 0 0 0 1px var(--rim)}
+.sw .pair em{font-style:normal;color:var(--muted);font-size:11px}
+.sw b{font-family:var(--f-display);font-size:14px}
+.sw code{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+
+@keyframes breathe{from{opacity:.25}to{opacity:.9}}
+@keyframes grow{from{stroke-dashoffset:var(--len)}to{stroke-dashoffset:0}}
+@keyframes rise{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+.glow{animation:breathe 2.4s ease-in-out infinite alternate}
+.grow{stroke-dasharray:var(--len);animation:grow 2.6s cubic-bezier(.3,.6,.2,1) both}
+.rise{transform-box:fill-box;transform-origin:center;animation:rise 2s 1.6s ease-out both}
+@media (prefers-reduced-motion:reduce){
+  .glow,.grow,.rise{animation:none}
+  .card,.card svg,.verse b{transition:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Tree of Life · Growth Engine v0.1 · 視覺提案</span>
+    <h1>九種果子，先看見，再選擇</h1>
+    <p class="lede">每日省思第 5 步的選擇畫面原型，可以直接點選操作。下方附上九種果子在四個生長階段的圖樣，以及色票的調整建議。畫面中的推薦、「上次」與樹的狀態都是示範資料。</p>
+  </header>
+
+  <section class="top">
+    <div class="phone" id="phone" aria-live="polite"></div>
+
+    <div class="notes">
+      <h2>為什麼這樣呈現</h2>
+      <ol>
+        <li><h3>先看圖，再讀字</h3><p>每顆果子有兩條辨識線索：形狀（圓、橢圓、水滴、成串）和顏色。只看輪廓也分得出來，對色弱使用者同樣成立。</p></li>
+        <li><h3>3 × 3 跟著經文的節奏</h3><p>九宮格依加拉太書 5:22-23 的順序排列，上方就放那節經文。選了哪一顆，經文裡對應的詞就慢慢亮起，讓「選果子」回到「讀經文」。</p></li>
+        <li><h3>格子裡只畫成熟的樣子</h3><p>格子上的圖是每顆果子的「名字」，所以一律畫結果的樣子，不放進度條、百分比或鎖頭。自己目前在哪一階，點開後才以一個小圖出現。</p></li>
+        <li><h3>溫和地引導，不替人決定</h3><p>依第 2 題選的感受，用虛線框輕輕標出一到兩種可以看看的果子（規則對照表，不經過 AI）。上次留意的果子標上「上次」，方便延續。「今天先不選」一直都在。</p></li>
+        <li><h3>選完立刻回到樹上</h3><p>按下完成後，那條枝條用 2.4 秒慢慢亮起；第一次選的果子會長出新枝條。沒有升級音效或彈跳，符合規格「漸進、自然」的原則。</p></li>
+        <li><h3>色票統一明度</h3><p>原規格的顏色來自 Flat UI 色票，明暗不一：信實的 #2E4053 在深色模式幾乎看不見，節制的 #7D6608 偏髒。建議保留原本的色相，把九色拉到相近的明度和彩度，像同一棵樹上結出來的果子。</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>四個生長階段的圖樣</h2>
+    <p class="lede">樹上看到的就是這些圖，換成 3D 時可以當作 GLB 模型的造型參考。同一階段九顆果子共用同一種畫法，只換形狀和顏色，整棵樹才會看起來是一體的。</p>
+    <div class="scroll"><table id="stages"></table></div>
+  </section>
+
+  <section class="sec">
+    <h2>色票：原規格 → 建議</h2>
+    <p class="lede">每格左邊是原本的 color_fruit，右邊是建議值。色相不變，只調整明暗與飽和度。</p>
+    <div class="pal" id="pal"></div>
+  </section>
+</div>
+
+<script>
+const F=[
+ {id:'love',zh:'仁愛',en:'Love',c:'#B8433B',fl:'#F2C6C0',o:'#C0392B',shape:'sphere',detail:'crown',tilt:0,ref:'哥林多前書 13:4-7',
+  desc:'愛先是領受，才能流出。不是努力表現出愛，而是在被愛中學會關心、接納與付出。',
+  q:'如果不需要先證明對方值得，你會怎麼對待他？',p:['主動問候一位最近較少聯絡的人','聆聽某人說完話而不急著給建議','為一位讓你不舒服的人禱告']},
+ {id:'joy',zh:'喜樂',en:'Joy',c:'#E0AE2F',fl:'#FBEBB8',o:'#F1C40F',shape:'sphere',detail:'dimple',tilt:0,ref:'腓立比書 4:4',
+  desc:'喜樂不是情緒永遠高昂，而是在環境起伏中，仍知道生命的源頭沒有改變。',
+  q:'有沒有一件小事，是你差點忽略的恩典？',p:['睡前寫下三件今天的恩典','把一件好消息分享給別人','在等待中安排一段不為產出的休息']},
+ {id:'peace',zh:'和平',en:'Peace',c:'#5E93C2',fl:'#D3E4F2',o:'#5DADE2',shape:'oval',rx:21,ry:27,tilt:-8,ref:'腓立比書 4:6-7',
+  desc:'在不確定中仍能安穩，不必先掌握所有答案。也包含願意促成人與人之間的和好。',
+  q:'如果把這件事交託出去，你今晚可以放下什麼？',p:['把擔心的事寫下來並逐項禱告交託','面對衝突前先停三次呼吸','主動修補一段緊張的關係']},
+ {id:'patience',zh:'忍耐',en:'Patience',c:'#94704F',fl:'#E3D6EA',o:'#8E6E53',shape:'tear',tilt:6,ref:'雅各書 1:2-4',
+  desc:'面對等待、緩慢與困難時，不輕易失去盼望，也不急著用自己的方式加速。',
+  q:'這段等待可能正在培養你什麼？',p:['讓別人用自己的速度完成一件事','把一個想立刻回覆的訊息延到冷靜後再回','為一個長期等待的事寫下目前看見的進展']},
+ {id:'kindness',zh:'恩慈',en:'Kindness',c:'#DD7A35',fl:'#FAE0C8',o:'#E67E22',shape:'sphere',detail:'calyx',tilt:0,ref:'以弗所書 4:32',
+  desc:'以溫柔和善意對待他人，特別是對方沒有「做到」的時候。',
+  q:'有沒有一個人，今天其實需要的是一句好話？',p:['對一位服務人員具體表達感謝','在別人犯錯時先說一句體諒的話','為家人做一件他沒開口要求的事']},
+ {id:'goodness',zh:'良善',en:'Goodness',c:'#5E9A55',fl:'#D4ECCB',o:'#27AE60',shape:'oval',rx:23,ry:26,tilt:10,ref:'羅馬書 12:21',
+  desc:'選擇正直且合宜的行動，即使沒有人看見，也不以此證明自己比別人好。',
+  q:'哪個小地方，可以讓你的行動和信念更一致？',p:['在沒人要求的情況下完成一件該做的事','承認一個自己的小錯誤','拒絕一件與良心不一致的小便宜']},
+ {id:'faithfulness',zh:'信實',en:'Faithfulness',c:'#4B5A86',fl:'#D9DDE8',o:'#2E4053',shape:'cluster',tilt:0,ref:'路加福音 16:10',
+  desc:'持守承諾與忠心，在小事上可靠。也記得自己的信實，是回應神先向我們的信實。',
+  q:'今天你在哪一件小事上是忠心的？',p:['完成一件拖延已久的承諾','準時出席並全心參與一個約定','每天固定一個時間回到經文']},
+ {id:'gentleness',zh:'溫柔',en:'Gentleness',c:'#A47AB8',fl:'#EEE2F3',o:'#AF7AC5',shape:'tear',tilt:-10,ref:'馬太福音 11:29',
+  desc:'有能力，卻不以強勢控制他人。溫柔不是軟弱，而是收斂的力量。',
+  q:'如果換一種語氣，同一句話會帶來什麼不同？',p:['在討論中先問一個問題再表達立場','把一句命令改成邀請','在占上風的時候選擇不追擊']},
+ {id:'self-control',zh:'節制',en:'Self-control',c:'#9C8A2C',fl:'#F3E6A6',o:'#7D6608',shape:'oval',rx:17,ry:25,tilt:22,ref:'箴言 25:28',
+  desc:'能管理自己的慾望與反應。不是靠意志力硬撐，而是在恩典中學會說「不」也說「好」。',
+  q:'那一刻你真正想要的是什麼？',p:['設定一段不碰手機的時間','在生氣時先離開現場十分鐘','為一個習慣設定一個溫和的界線']},
+];
+const BY=Object.fromEntries(F.map(f=>[f.id,f]));
+const STAGE_ZH={dormant:'還沒開始',seed:'種子',bud:'花苞',flower:'開花',fruit:'結果'};
+/* 示範資料 */
+const SAMPLE={state:{love:'fruit',joy:'flower',peace:'bud',patience:'seed',kindness:'bud',goodness:'dormant',faithfulness:'seed',gentleness:'dormant','self-control':'flower'},
+  planned:{love:6,joy:4,peace:2,patience:1,kindness:2,goodness:0,faithfulness:1,gentleness:0,'self-control':3},
+  feelings:['焦慮','想掌控'],rec:['peace','patience'],last:'patience'};
+
+const hx=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+const mix=(a,b,t)=>{const A=hx(a),B=hx(b);return '#'+A.map((v,i)=>Math.round(v+(B[i]-v)*t).toString(16).padStart(2,'0')).join('')};
+let UID=0;
+const grad=(id,c)=>`<radialGradient id="${id}" cx="36%" cy="30%" r="80%"><stop offset="0" stop-color="${mix(c,'#ffffff',.5)}"/><stop offset=".5" stop-color="${c}"/><stop offset="1" stop-color="${mix(c,'#000000',.3)}"/></radialGradient>`;
+const leaf=(x,y)=>`<path d="M${x} ${y} C ${x+8} ${y-12}, ${x+22} ${y-13}, ${x+29} ${y-7} C ${x+21} ${y+3}, ${x+9} ${y+5}, ${x} ${y} Z" fill="var(--leaf)"/><path d="M${x+2} ${y} Q ${x+14} ${y-5} ${x+26} ${y-7}" stroke="var(--vein)" stroke-width="1" fill="none"/>`;
+const stem=(y)=>`<path d="M50 ${y+2} C 50 ${y-6}, 51 ${y-12}, 55 ${y-16}" stroke="var(--stem)" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+
+function fruitBody(f){
+  const id='g'+(UID++); let body='',top=31,hl='';
+  if(f.shape==='sphere'){
+    if(f.detail==='calyx'){top=36;body=`<ellipse cx="50" cy="61" rx="29" ry="25" fill="url(#${id})" stroke="var(--rim)"/>`;hl=`<ellipse cx="39" cy="50" rx="7" ry="4" transform="rotate(-25 39 50)" fill="#fff" opacity=".45"/>`}
+    else{body=`<circle cx="50" cy="58" r="27" fill="url(#${id})" stroke="var(--rim)"/>`;hl=`<ellipse cx="40" cy="46" rx="7" ry="4.5" transform="rotate(-30 40 46)" fill="#fff" opacity=".45"/>`}
+  }else if(f.shape==='oval'){
+    top=58-f.ry;body=`<ellipse cx="50" cy="58" rx="${f.rx}" ry="${f.ry}" fill="url(#${id})" stroke="var(--rim)"/>`;
+    hl=`<ellipse cx="${50-f.rx*.42}" cy="${58-f.ry*.45}" rx="${f.rx*.22}" ry="${f.ry*.18}" transform="rotate(-20 ${50-f.rx*.42} ${58-f.ry*.45})" fill="#fff" opacity=".45"/>`;
+  }else if(f.shape==='tear'){
+    top=26;body=`<path d="M50 26 C 57 26, 61 40, 67 52 C 77 70, 68 86, 50 86 C 32 86, 23 70, 33 52 C 39 40, 43 26, 50 26 Z" fill="url(#${id})" stroke="var(--rim)"/>`;
+    hl=`<ellipse cx="40" cy="62" rx="5" ry="8" transform="rotate(15 40 62)" fill="#fff" opacity=".4"/>`;
+  }else{
+    top=27;const pts=[[29,36],[43,36],[57,36],[71,36],[36,49],[50,49],[64,49],[43,62],[57,62],[50,75]];
+    body=pts.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="9" fill="url(#${id})" stroke="var(--rim)"/><circle cx="${x-3}" cy="${y-3.5}" r="2" fill="#fff" opacity=".45"/>`).join('');
+  }
+  let extra='';
+  if(f.detail==='crown')extra=`<path d="M44 34 L44.5 25 L47.5 29 L50 23 L52.5 29 L55.5 25 L56 34 Z" fill="${mix(f.c,'#000000',.22)}"/>`;
+  if(f.detail==='calyx')extra=`<g fill="var(--leaf)"><ellipse cx="42" cy="37" rx="9" ry="3.4" transform="rotate(-14 42 37)"/><ellipse cx="58" cy="37" rx="9" ry="3.4" transform="rotate(14 58 37)"/><ellipse cx="50" cy="40" rx="3.4" ry="5"/></g>`;
+  if(f.detail==='dimple')extra=`<path d="M46 33 Q50 36 54 33" stroke="${mix(f.c,'#000000',.25)}" stroke-width="1.4" fill="none" stroke-linecap="round"/>`;
+  const st=f.detail==='crown'?'':stem(top);
+  return `<defs>${grad(id,f.c)}</defs><g transform="rotate(${f.tilt} 50 58)">${st}${leaf(53,top-9)}${body}${hl}${extra}</g>`;
+}
+function glyph(stage,f,withStem=true){
+  const dk=mix(f.c,'#000000',.18), petalStroke=mix(f.c,f.fl,.45);
+  const s=withStem?`<path d="M50 96 C 50 80, 48 66, 50 52" stroke="var(--leaf)" stroke-width="3" fill="none" stroke-linecap="round"/>${leaf(50,76)}`:'';
+  if(stage==='seed'){
+    const id='s'+(UID++);
+    if(!withStem)return `<defs><radialGradient id="${id}"><stop offset="0" stop-color="${f.fl}"/><stop offset="1" stop-color="${f.fl}" stop-opacity="0"/></radialGradient></defs><circle cx="50" cy="50" r="30" fill="url(#${id})"/><circle cx="50" cy="50" r="9" fill="${dk}"/><circle cx="47" cy="47" r="2.5" fill="#fff" opacity=".5"/>`;
+    return `<defs><radialGradient id="${id}"><stop offset="0" stop-color="${f.fl}" stop-opacity=".95"/><stop offset="1" stop-color="${f.fl}" stop-opacity="0"/></radialGradient></defs>
+      <circle cx="50" cy="62" r="26" fill="url(#${id})"/>
+      <path d="M10 82 Q50 62 90 82 L90 92 L10 92 Z" fill="var(--soil)"/>
+      <ellipse cx="50" cy="68" rx="8" ry="11" transform="rotate(20 50 68)" fill="${dk}"/>
+      <ellipse cx="47" cy="64" rx="2.2" ry="3.4" transform="rotate(20 47 64)" fill="#fff" opacity=".45"/>
+      <path d="M52 58 Q53 50 58 46" stroke="var(--leaf)" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
+  }
+  if(stage==='bud'){
+    const y=withStem?0:14;
+    return `${s}<g transform="translate(0 ${y})"><path d="M50 18 C 61 27, 62 42, 50 50 C 38 42, 39 27, 50 18 Z" fill="${f.fl}" stroke="${petalStroke}" stroke-width="1.6"/>
+      <path d="M50 18 C 55 24, 56 32, 50 40 C 44 32, 45 24, 50 18 Z" fill="${f.c}" opacity=".55"/>
+      <path d="M40 44 Q50 58 60 44 Q55 52 50 53 Q45 52 40 44 Z" fill="var(--leaf)"/></g>`;
+  }
+  if(stage==='flower'){
+    const cy=withStem?40:50;
+    const petals=[0,72,144,216,288].map(a=>`<ellipse cx="50" cy="${cy-14}" rx="10" ry="14" transform="rotate(${a} 50 ${cy})" fill="${f.fl}" stroke="${petalStroke}" stroke-width="1.4"/>`).join('');
+    return `${s}${petals}<circle cx="50" cy="${cy}" r="7" fill="${f.c}"/><circle cx="48" cy="${cy-2}" r="2" fill="#fff" opacity=".5"/>`;
+  }
+  if(stage==='fruit')return fruitBody(f);
+  return '';
+}
+const svg=(inner,cls='')=>`<svg viewBox="0 0 100 100" ${cls?`class="${cls}"`:''} aria-hidden="true">${inner}</svg>`;
+
+/* ---------- tree ---------- */
+function tree(state,planned,focus,isNew){
+  const cx=180,cy=196,R=128;let br='',tips='',leaves='';
+  F.forEach((f,i)=>{
+    const st=state[f.id]; if(st==='dormant')return;
+    const a=(198+i*18)*Math.PI/180, tx=cx+R*Math.cos(a), ty=cy+R*Math.sin(a);
+    const sx=180,sy=206, qx=sx+(tx-sx)*.2, qy=ty+(sy-ty)*.55;
+    const grow=(isNew&&f.id===focus)?' class="grow" style="--len:180"':'';
+    br+=`<path d="M${sx} ${sy} Q ${qx} ${qy} ${tx} ${ty}" stroke="var(--bark)" stroke-width="${st==='seed'?2.5:4}" fill="none" stroke-linecap="round"${grow}/>`;
+    const n=Math.round(Math.min((planned[f.id]||0)*3,24)/3);
+    for(let k=1;k<=n;k++){const t=.35+k*(.55/(n+1)),u=1-t;
+      const px=u*u*sx+2*u*t*qx+t*t*tx, py=u*u*sy+2*u*t*qy+t*t*ty, rot=(a*180/Math.PI)+(k%2?-50:50);
+      leaves+=`<ellipse cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" rx="7" ry="3" transform="rotate(${rot.toFixed(0)} ${px.toFixed(1)} ${py.toFixed(1)})" fill="var(--leaf)" opacity=".9"/>`;}
+    if(f.id===focus){const gid='h'+(UID++);
+      tips+=`<defs><radialGradient id="${gid}"><stop offset="0" stop-color="${f.fl}"/><stop offset=".6" stop-color="${f.c}" stop-opacity=".25"/><stop offset="1" stop-color="${f.c}" stop-opacity="0"/></radialGradient></defs><circle class="glow" cx="${tx}" cy="${ty}" r="34" fill="url(#${gid})"/>`;}
+    const sz=st==='seed'?30:46;
+    tips+=`<svg x="${tx-sz/2}" y="${ty-sz/2}" width="${sz}" height="${sz}" viewBox="0 0 100 100"${(isNew&&f.id===focus)?' class="rise"':''}>${glyph(st,f,false)}</svg>`;
+  });
+  return `<svg class="tree" viewBox="0 0 360 330" role="img" aria-label="示範用的生命樹">
+    <ellipse cx="180" cy="300" rx="150" ry="10" fill="var(--soil)" opacity=".6"/>
+    <g stroke="var(--bark)" stroke-width="1.6" fill="none" opacity=".45" stroke-linecap="round">
+      <path d="M180 300 Q160 312 128 322"/><path d="M180 300 Q200 314 236 320"/><path d="M180 300 Q176 316 168 328"/><path d="M180 302 Q214 308 262 306"/></g>
+    <path d="M168 302 C 172 262, 175 232, 176 204 L184 204 C 185 232, 188 262, 192 302 Z" fill="var(--bark)"/>
+    ${br}${leaves}${tips}</svg>`;
+}
+
+/* ---------- phone ---------- */
+const ui={sel:null,practice:'',chip:-1,view:'pick'};
+const phone=document.getElementById('phone');
+const verseHTML=sel=>`<div class="verse">聖靈所結的果子，就是${F.map(f=>`<b data-id="${f.id}" style="--c:${f.c}" class="${sel===f.id?'lit':''}">${f.zh}</b>`).join('、')}。<small>加拉太書 5:22-23（和合本）</small></div>`;
+function renderPick(){
+  const f=ui.sel?BY[ui.sel]:null;
+  phone.innerHTML=`
+    <div class="step"><span>今日省思 · 第 5 步</span><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></div>
+    <div class="q"><h3>今天想留意哪一個果子？</h3><p>選一個就好，也可以今天先不選。</p></div>
+    ${verseHTML(ui.sel)}
+    <div class="hint">你剛才寫下的感受是「${SAMPLE.feelings.join('」「')}」，或許可以看看${SAMPLE.rec.map(id=>`<button type="button" data-pick="${id}">${BY[id].zh}</button>`).join('')}</div>
+    <div class="grid${ui.sel?' has-sel':''}" role="group" aria-label="九種果子">
+      ${F.map(x=>`<button type="button" class="card${ui.sel===x.id?' sel':''}${SAMPLE.rec.includes(x.id)?' rec':''}" data-pick="${x.id}" aria-pressed="${ui.sel===x.id}" style="--c:${x.c};--fl:${x.fl}">
+        ${x.id===SAMPLE.last?'<span class="tag">上次</span>':''}${svg(fruitBody(x))}<span class="zh">${x.zh}</span><span class="en">${x.en}</span></button>`).join('')}
+    </div>
+    ${f?`<div class="sheet" style="--c:${f.c};--fl:${f.fl}">
+      <div class="sheet-head">${svg(fruitBody(f))}<div><h4>${f.zh} <span style="font-family:var(--f-body);font-size:13px;color:var(--muted);font-weight:400">${f.en}</span></h4><div class="meta">${f.ref}</div></div></div>
+      <p class="desc">${f.desc}</p>
+      <div class="mine">${SAMPLE.state[f.id]==='dormant'?'這會是你樹上的第一顆「'+f.zh+'」種子':svg(glyph(SAMPLE.state[f.id],f))+'在你的樹上：'+STAGE_ZH[SAMPLE.state[f.id]]}</div>
+      <p class="ask">${f.q}</p>
+      <span class="lbl">明天可以試試</span>
+      <div class="chips">${f.p.map((t,i)=>`<button type="button" data-chip="${i}" aria-pressed="${ui.chip===i}">${t}</button>`).join('')}</div>
+      <label class="lbl" for="practice">或寫下你自己的方式</label>
+      <textarea id="practice" placeholder="例如：明天開會前先停三次呼吸">${ui.practice}</textarea>
+    </div>`:''}
+    <div class="actions">
+      <button type="button" class="primary" id="go">${f?`完成今天的省思`:'選一個果子'}</button>
+      <button type="button" class="ghost" id="skip">今天先不選</button>
+    </div>`;
+  const go=document.getElementById('go'); go.disabled=!f; go.style.opacity=f?1:.45;
+}
+function renderDone(){
+  const f=ui.sel?BY[ui.sel]:null;
+  const state={...SAMPLE.state}; let isNew=false;
+  if(f&&state[f.id]==='dormant'){state[f.id]='seed';isNew=true}
+  phone.innerHTML=`<div class="step"><span>今日省思 · 完成</span><span class="dots">${'<i class="on"></i>'.repeat(6)}</span></div>
+    <div class="done">${tree(state,SAMPLE.planned,f?f.id:null,isNew)}
+      <p class="msg">${f?(isNew?`你的樹上長出了新的枝條：${f.zh}`:`今晚，「${f.zh}」這條枝條被記得了`):'沒有選也沒關係'}</p>
+      <p class="sub">${f?(ui.practice.trim()?`明天想試試：${ui.practice.trim()}`:'明天想到什麼，再回來寫下也可以。'):'今天的省思一樣讓根長得更深。'}</p>
+      <button type="button" class="ghost" id="back">回到選擇畫面</button>
+      <p class="sample">樹的狀態為示範資料</p></div>`;
+}
+function render(){ui.view==='pick'?renderPick():renderDone()}
+phone.addEventListener('click',e=>{
+  const p=e.target.closest('[data-pick]');
+  if(p){const id=p.dataset.pick; if(ui.sel!==id){ui.sel=id;ui.chip=-1;ui.practice=''} else {ui.sel=null} render(); return}
+  const c=e.target.closest('[data-chip]');
+  if(c){const i=+c.dataset.chip; ui.chip=i; ui.practice=BY[ui.sel].p[i]; render(); return}
+  if(e.target.id==='go'&&ui.sel){ui.view='done';render();return}
+  if(e.target.id==='skip'){ui.sel=null;ui.view='done';render();return}
+  if(e.target.id==='back'){ui.view='pick';render();return}
+});
+phone.addEventListener('input',e=>{if(e.target.id==='practice'){ui.practice=e.target.value;ui.chip=-1;
+  phone.querySelectorAll('[data-chip]').forEach(b=>b.setAttribute('aria-pressed','false'))}});
+render();
+
+/* ---------- stages table ---------- */
+document.getElementById('stages').innerHTML=`<thead><tr><th></th>${['seed','bud','flower','fruit'].map(s=>`<th><span>${STAGE_ZH[s]}</span>${s}</th>`).join('')}</tr></thead>
+<tbody>${F.map(f=>`<tr><td class="name"><b>${f.zh}</b><small>${f.en} · ${{sphere:'圓',oval:'橢圓',tear:'水滴',cluster:'成串'}[f.shape]}</small></td>${['seed','bud','flower','fruit'].map(s=>`<td>${svg(glyph(s,f))}</td>`).join('')}</tr>`).join('')}</tbody>`;
+
+/* ---------- palette ---------- */
+document.getElementById('pal').innerHTML=F.map(f=>`<div class="sw"><span class="pair"><i style="background:${f.o}"></i><em>→</em><i style="background:${f.c}"></i></span><b>${f.zh}</b><code>${f.o} → ${f.c}</code></div>`).join('');
+</script>
+</body>
+</html>

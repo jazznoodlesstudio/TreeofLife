@@ -1,0 +1,63 @@
+{
+  "version": "0.3",
+  "practice_min_chars": 4,
+  "thresholds": {
+    "fruit": {
+      "practiced_count": 4,
+      "active_weeks": 3
+    },
+    "flower": {
+      "planned_count": 2,
+      "practiced_count": 1
+    },
+    "bud": {
+      "focus_days": 3,
+      "aware_days": 2
+    },
+    "seed": {
+      "focus_days": 1
+    }
+  },
+  "roots_thresholds": [
+    1,
+    3,
+    7,
+    14,
+    30,
+    60,
+    120
+  ],
+  "trunk_thresholds": [
+    1,
+    2,
+    4,
+    8,
+    16,
+    26,
+    52
+  ],
+  "leaves_per_plan": 3,
+  "leaves_max": 24,
+  "return_gap_days": 7,
+  "visual": {
+    "glow": {
+      "seed": 0.25,
+      "bud": 0.4,
+      "flower": 0.55,
+      "fruit": 0.75
+    },
+    "focus_boost": 1.3,
+    "day_hours": [
+      6,
+      18
+    ],
+    "day": {
+      "halo": 0.6,
+      "wash": 0.45
+    },
+    "night": {
+      "halo": 1,
+      "wash": 1
+    }
+  }
+}
