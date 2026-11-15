@@ -777,7 +777,7 @@ function addRecord(date, focus, practice, d) {
   const rec = d ? { local_date: date, event_text: d.event.trim(), inner_reactions: d.feelings.slice(), inner_other: d.other.trim(), direction: d.direction, re_response: d.re.trim(),
       focus_fruit_id: focus || null, practice_text: focus ? practice : '', prev_practice_checkin: d.checkinFor ? d.checkin : null, checkin_for_date: d.checkinFor && d.checkin ? d.checkinFor : null }
     : { local_date: date, event_text: '（示範紀錄）', inner_reactions: ['平靜'], direction: 'unsure', focus_fruit_id: focus || null,
-      practice_text: focus ? (practice || '練習停一下再回應') : '', prev_practice_checkin: last && last.focus_fruit_id ? 'done' : null, checkin_for_date: last ? last.local_date : null };
+      practice_text: focus ? (practice || '練習停一下再回應') : '', prev_practice_checkin: last && last.focus_fruit_id ? 'done' : null, checkin_for_date: last ? last.local_date : null, demo: true };
   rec.updated_at = new Date().toISOString();
   const k = refls.findIndex(r => r.local_date === date);
   if (k >= 0) refls[k] = rec; else { refls.push(rec); refls.sort(byDate); }
@@ -788,8 +788,10 @@ function addRecord(date, focus, practice, d) {
 const okDate = d => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d) && !isNaN(Date.parse(d + 'T00:00:00Z')) && new Date(d + 'T00:00:00Z').toISOString().slice(0, 10) === d;
 const str = (v, max) => typeof v === 'string' ? v.slice(0, max) : '';
 const pick = (v, list) => list.includes(v) ? v : null;
+const isDemoRec = r => !!r && typeof r === 'object' && (r.demo === true || r.event_text === '（示範紀錄）');
+let removedDemo = 0;
 function cleanRecord(r) {
-  if (!r || typeof r !== 'object' || Array.isArray(r) || !okDate(r.local_date)) return null;
+  if (!r || typeof r !== 'object' || Array.isArray(r) || !okDate(r.local_date) || isDemoRec(r)) return null;
   const focus = pick(r.focus_fruit_id, IDS), t = typeof r.updated_at === 'string' ? Date.parse(r.updated_at) : NaN;
   return {
     local_date: r.local_date,
@@ -825,7 +827,7 @@ function save() { if (NOSAVE) return; try { localStorage.setItem(SAVE_KEY, JSON.
 function load() {
   if (NOSAVE) return false;
   try { const o = JSON.parse(localStorage.getItem(SAVE_KEY)); if (!o || !Array.isArray(o.refls) || !o.cursor) return false;
-    refls = cleanRefls(o.refls); states = cleanStates(o.states); deleted = cleanDeleted(o.deleted); cursor = todayStr(); simDay = Number(o.simDay) || 0;   // 舊版紀錄沒有時間的，cleanRecord 會補上
+    removedDemo = (Array.isArray(o.refls) ? o.refls : []).filter(isDemoRec).length; refls = cleanRefls(o.refls); states = cleanStates(o.states); deleted = cleanDeleted(o.deleted); cursor = todayStr(); simDay = Number(o.simDay) || 0;   // 舊版紀錄沒有時間的，cleanRecord 會補上
     counters = Engine.computeCounters(refls, RULES, IDS); refresh(); return true; } catch (e) { return false; }
 }
 /* 上一次想實踐、還沒回報過的那一筆（skip：正在寫的那一天，不算在內） */
@@ -836,6 +838,7 @@ function pendingCheckin(skip) {
   return null;
 }
 function advance(days) {
+  if (!DEMO && !NOSAVE) return;   // 示範資料只能出現在示範模式，絕不寫進真正的紀錄
   for (let d = 0; d < days; d++) {
     const date = Engine.addDays(cursor, 1); simDay++;
     if ([0, 2, 4, 5].includes(simDay % 7)) {
@@ -986,7 +989,7 @@ function confirmPick(focusIdx) {
   tend(F, b, ang, from, grow);
 }
 
-$('#btnReflect').addEventListener('click', openFlow);
+$('#btnReflect').addEventListener('click', () => { Cloud.warm(); openFlow(); });
 $('#btnClose').addEventListener('click', () => { closePicker(); if (draft) openFlow(); });   // 關掉選果子 → 回到上一題，內容都還在
 $('#btnSkip').addEventListener('click', () => { Cloud.warm(); confirmPick(-1); });
 $('#btnGo').addEventListener('click', () => { if (pk.sel >= 0) { Cloud.warm(); confirmPick(pk.sel); } });
@@ -1159,6 +1162,7 @@ const hist = { open: false, snaps: [], sel: -1, confirm: false, play: 0 };
 function openHist() {
   if (actor.busy || pk.open || cp.open || flow.open) return;
   hist.snaps = replay(refls); hist.open = true; hist.sel = -1; hist.confirm = false; renderHist();
+  $('#hist header p').textContent = DEMO ? '這是示範資料，不會被儲存。點一天，樹會回到那一天的樣子。' : '點一天，樹會回到那一天的樣子。';
   $('#hist').classList.add('open'); $('#hist').setAttribute('aria-hidden', 'false'); $('#hud').classList.add('hide');
   controls.autoRotate = false; T.shift.t = 1; setTimeout(() => $('#hClose').focus({ preventScroll: true }), 300);
 }
@@ -1239,7 +1243,7 @@ const Cloud = (() => {
   let CID = (window.TOL_CONFIG && window.TOL_CONFIG.googleClientId) || '';
   const SCOPE = 'https://www.googleapis.com/auth/drive.file', KEY = 'tol_cloud', API = 'https://www.googleapis.com';
   let st = {}; if (!NOSAVE) try { st = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) {}
-  let token = null, exp = 0, tc = null, gis = null, busy = false, again = false, timer = 0, status = st.connected ? 'idle' : 'off', lastErr = '', onTok = null, onErr = null;
+  let token = null, exp = 0, tc = null, gis = null, busy = false, again = false, timer = 0, status = st.connected ? 'reauth' : 'off', lastErr = '', onTok = null, onErr = null;
   const persist = () => { if (!NOSAVE) try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} };
   const enabled = () => !!CID && !DEMO, valid = () => !!token && Date.now() < exp - 60e3;
   function loadGis() {
@@ -1270,11 +1274,11 @@ const Cloud = (() => {
     return api('/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink', { method: 'POST', headers: { 'Content-Type': 'multipart/related; boundary=' + b },
       body: `--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${b}\r\nContent-Type: ${type}\r\n\r\n${body}\r\n--${b}--` });
   }
-  const put = (id, body, type) => api(`/upload/drive/v3/files/${id}?uploadType=media&fields=id,webViewLink`, { method: 'PATCH', headers: { 'Content-Type': type }, body });
+  const put = (id, body, type) => api(`/upload/drive/v3/files/${id}?uploadType=media&fields=id,webViewLink,trashed`, { method: 'PATCH', headers: { 'Content-Type': type }, body });
   function setStatus(x) {
     status = x; const dot = $('#cloudDot'), lab = $('#cloudLabel'), btn = $('#btnCloud');
     btn.querySelectorAll('img,.ava').forEach(e => e.remove());
-    if (st.connected && enabled()) { lab.textContent = firstName(); btn.insertBefore(avatar(20), lab); } else lab.textContent = '用 Google 登入';
+    if (st.connected && enabled()) { lab.textContent = firstName() + ({ reauth: '・待確認', error: '・同步失敗', sync: '・同步中' }[x] || ''); btn.insertBefore(avatar(20), lab); } else lab.textContent = '用 Google 登入';
     dot.className = 'dot' + ({ ok: ' ok', idle: ' ok', sync: ' sync', reauth: ' warn', error: ' warn' }[x] || '');
     btn.setAttribute('aria-label', st.connected ? `Google 帳號 ${st.user ? st.user.email : ''}：` + ({ ok: '已同步', idle: '已登入', sync: '同步中', reauth: '需要再確認一次', error: '同步沒有成功' }[x] || '') : '用 Google 帳號登入');
     if ($('#cloud').classList.contains('open')) render();
@@ -1282,7 +1286,11 @@ const Cloud = (() => {
   async function sync(interactive) {
     if (!enabled()) return;
     if (busy) { again = true; return; }
-    if (!valid() && !interactive) { setStatus(st.connected ? 'reauth' : 'off'); return; }
+    if (!valid() && !interactive) {
+      setStatus(st.connected ? 'reauth' : 'off');
+      if (st.connected && st.dirty) setTimeout(() => hooks.note('已存在這台裝置，但還沒同步到 Google 雲端硬碟。請點右上角的帳號，確認後就會同步。', 14000), 7500);
+      return;
+    }
     busy = true; setStatus('sync');
     try {
       if (!valid()) await auth(st.connected ? '' : 'consent');
@@ -1298,16 +1306,18 @@ const Cloud = (() => {
           body: JSON.stringify({ name: '生命樹 Tree of Life', mimeType: 'application/vnd.google-apps.folder', appProperties: { tol: 'folder' } }) })).id; }
       // 3. 完整資料（還原用）
       const json = JSON.stringify(hooks.payload());
-      if (st.dataId) await put(st.dataId, json, 'application/json');
-      else st.dataId = (await create({ name: 'tree-of-life-data.json', mimeType: 'application/json', parents: [st.folderId], appProperties: { tol: 'data' },
+      if (st.dataId) { const pd = await put(st.dataId, json, 'application/json'); if (pd && pd.trashed) st.dataId = null; }
+      if (!st.dataId) st.dataId = (await create({ name: 'tree-of-life-data.json', mimeType: 'application/json', parents: [st.folderId], appProperties: { tol: 'data' },
         description: '生命樹 App 用來還原紀錄的完整資料，請不要手動修改。' }, json, 'application/json')).id;
       // 4. 試算表（每天一列，給人看的）
       const csv = hooks.csv(); let sh = null;
       if (!st.sheetId) { const f = await find('sheet'); if (f) { st.sheetId = f.id; st.sheetLink = f.webViewLink; } }
-      if (st.sheetId) try { sh = await put(st.sheetId, csv, 'text/csv'); } catch (e) {
-        if (e.reauth) throw e;
-        if (e.status !== 404) api(`/drive/v3/files/${st.sheetId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: '{"trashed":true}' }).catch(() => {});
-        st.sheetId = null; }
+      if (st.sheetId) {
+        try { sh = await put(st.sheetId, csv, 'text/csv'); } catch (e) {
+          if (e.reauth || e.status !== 404) throw e;   // 只有「找不到」才重建；其他錯誤保留原檔、回報錯誤
+          st.sheetId = null; }
+        if (sh && sh.trashed) { st.sheetId = null; sh = null; }   // 使用者把試算表丟進垃圾桶了：另建一份新的
+      }
       if (!st.sheetId) { sh = await create({ name: '生命樹省思紀錄', mimeType: 'application/vnd.google-apps.spreadsheet', parents: [st.folderId], appProperties: { tol: 'sheet' } }, csv, 'text/csv; charset=UTF-8'); st.sheetId = sh.id; }
       if (sh && sh.webViewLink) st.sheetLink = sh.webViewLink;
       const first = !st.connected; st.connected = true; st.lastSync = Date.now(); st.dirty = false; persist(); lastErr = ''; setStatus('ok');
@@ -1315,11 +1325,17 @@ const Cloud = (() => {
       if (first) setTimeout(hooks.close, 900);
     } catch (e) {
       lastErr = (e && e.message) || String(e); setStatus(!st.connected ? 'off' : (e.reauth || !valid()) ? 'reauth' : 'error');
+      if (!interactive && st.connected) setTimeout(() => hooks.note(e.reauth || !valid() ? '已存在這台裝置，但還沒同步到 Google 雲端硬碟。請點右上角的帳號，確認後就會同步。' : '同步到 Google 雲端硬碟沒有成功：' + lastErr, 14000), 7500);
     } finally { busy = false; if (again) { again = false; queue(); } }
   }
   function queue() { if (!enabled() || !st.connected) return; st.dirty = true; persist(); clearTimeout(timer); timer = setTimeout(() => sync(false), 1200); }
   /* 在使用者按下按鈕的當下先取得授權，之後自動同步時就不需要再跳視窗 */
-  function warm() { if (enabled() && st.connected && !valid() && window.google && google.accounts && google.accounts.oauth2) auth('').catch(e => { lastErr = e.message; }); }
+  let declined = false;
+  function warm() {
+    if (!enabled() || !st.connected || valid() || declined) return;
+    if (!(window.google && google.accounts && google.accounts.oauth2)) { loadGis().catch(() => {}); return; }
+    auth('').then(() => { if (st.dirty) queue(); else setStatus('idle'); }).catch(e => { declined = true; lastErr = e.message; });
+  }
   const firstName = () => { const u = st.user || {}; return (u.name || u.email || '已登入').split(/\s+/)[0]; };
   function avatar(px) {
     const u = st.user || {};
@@ -1358,13 +1374,14 @@ const Cloud = (() => {
         ${st.sheetLink && ['https://docs.google.com/', 'https://drive.google.com/'].some(p => st.sheetLink.startsWith(p)) ? `<a href="${esc(st.sheetLink)}" target="_blank" rel="noopener">在雲端硬碟開啟紀錄</a>` : ''}<button id="clOff">登出</button></div>
       ${confirmOut ? `<div class="cwarn" role="alert"><p>有些紀錄還沒有存進雲端硬碟。登出會清除這台裝置上的紀錄，還沒同步的部分會遺失。</p><div class="row"><button id="clSyncOut">先同步再登出</button><button id="clForce">直接登出</button></div></div>` : ''}
       <p class="muted">紀錄存在你雲端硬碟的資料夾「生命樹 Tree of Life」。登出會清除這台裝置上的紀錄，雲端硬碟裡的檔案會留著。</p>`;
-    $('#clSync').addEventListener('click', () => sync(true));
+    $('#clSync').addEventListener('click', () => { declined = false; sync(true); });
     $('#clAva').replaceWith(avatar(40));
     $('#clOff').addEventListener('click', () => signOut(false));
     if (confirmOut) { $('#clForce').addEventListener('click', () => signOut(true)); $('#clSyncOut').addEventListener('click', async () => { confirmOut = false; await sync(true); if (!st.dirty) signOut(true); else render(); }); }
   }
   const hooks = { merge: () => ({ added: 0 }), payload: () => ({}), csv: () => '', note: () => {}, close: () => {}, clearLocal: () => {} };
-  return { hooks, sync, queue, warm, render, setStatus, enabled, prompted: () => !!st.prompted, markPrompted: () => { st.prompted = true; persist(); }, connected: () => !!st.connected && enabled(),
+  return { hooks, sync, queue, warm, render, setStatus, enabled, expireToken: () => { token = null; exp = 0; setStatus('reauth'); },
+    reauthNow: () => { if (enabled() && st.connected && st.dirty && !valid()) { declined = false; sync(true); } }, isDirty: () => !!st.dirty, prompted: () => !!st.prompted, markPrompted: () => { st.prompted = true; persist(); }, connected: () => !!st.connected && enabled(),
     preload: () => { if (enabled()) loadGis().catch(() => {}); }, configure: cid => { CID = cid; tc = null; } };
 })();
 /* 合併規則：同一天以最後更新的那一筆為準；刪除也帶時間，比紀錄新才算數 */
@@ -1393,7 +1410,7 @@ Cloud.hooks.csv = () => {
       F ? F.zh : '', F ? r.practice_text || '' : '', r.prev_practice_checkin ? CK_ZH[r.prev_practice_checkin] : '', r.updated_at ? new Date(r.updated_at).toLocaleString('zh-TW', { hour12: false }) : '']; });
   return [head, ...rows].map(r => r.map(q).join(',')).join('\r\n');
 };
-Cloud.hooks.note = t => caption(t, 6000);
+Cloud.hooks.note = (t, ms) => caption(t, ms || 6000);
 Cloud.hooks.close = () => closeCloud();
 Cloud.hooks.clearLocal = () => {
   if (hist.open) closeHist(); draft = null; flow.i = 0;
@@ -1403,12 +1420,13 @@ Cloud.hooks.clearLocal = () => {
 };
 function openCloud() { if (actor.busy) return; Cloud.preload(); Cloud.render(); $('#cloud').classList.add('open'); $('#cloud').setAttribute('aria-hidden', 'false'); setTimeout(() => $('#clClose').focus({ preventScroll: true }), 200); }
 function closeCloud() { $('#cloud').classList.remove('open'); $('#cloud').setAttribute('aria-hidden', 'true'); if (!actor.type && !actor.busy) setTimeout(openChar, 500); }
-$('#btnCloud').addEventListener('click', openCloud);
+$('#btnCloud').addEventListener('click', () => { openCloud(); Cloud.reauthNow(); });   // 有還沒同步的變更時，點一下就直接重新授權（這一下是使用者點的，瀏覽器才允許跳出視窗）
 $('#clClose').addEventListener('click', closeCloud);
 $('#cloud').addEventListener('click', e => { if (e.target === $('#cloud')) closeCloud(); });
 
 /* 測試用：在過去幾天放進紀錄（只在 ?nosave 下使用） */
 function seedPast(n) {
+  if (!NOSAVE) return;   // 測試用，只在 ?nosave 或 ?demo 下才能用
   const ev = ['開會時被打斷，整個下午都悶悶的。', '和家人一起吃晚餐，聊得很開心。', '排隊排很久，差點對店員發脾氣。', '朋友傳訊息說謝謝我上週的幫忙。', '專案進度落後，晚上睡不太著。', '早上散步，看見陽光照在樹上。', '答應的事又拖了一天。'];
   const fe = [['焦慮'], ['平靜', '感恩'], ['不耐煩', '生氣'], ['感恩'], ['焦慮', '疲憊'], ['平靜'], ['自責']];
   for (let k = n; k >= 1; k--) {
@@ -1423,7 +1441,8 @@ $('#demo').hidden = !DEMO;
 $('#btnDemo').textContent = DEMO ? '離開示範' : '看示範';
 $('#btnDemo').addEventListener('click', () => { if (actor.busy) return; location.href = location.pathname + (DEMO ? '' : '?demo'); });
 const restored = load(); if (!restored) reset();
-Cloud.setStatus(Cloud.connected() ? 'idle' : 'off'); if (Cloud.connected()) Cloud.preload();
+Cloud.setStatus(Cloud.connected() ? 'reauth' : 'off');
+if (removedDemo) { Cloud.queue(); setTimeout(() => caption(`已清除 ${removedDemo} 筆舊的示範資料。`, 8000), 600); } if (Cloud.connected()) Cloud.preload();
 // 第一次來（有開放 Google 登入、還沒登入過）：先邀請登入，可以略過；只問一次
 if (Cloud.enabled() && !Cloud.connected() && !Cloud.prompted()) setTimeout(() => { Cloud.markPrompted(); openCloud(); }, 900);
 { let saved = null; try { saved = DEMO ? (localStorage.getItem('tol_char') || 'lamb') : NOSAVE ? 'rabbit' : localStorage.getItem('tol_char'); } catch (e) {} if (ANIMALS.some(a => a.id === saved)) setActor(saved); else if (!(Cloud.enabled() && !Cloud.connected() && !Cloud.prompted())) setTimeout(openChar, 1200); }
