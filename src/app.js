@@ -1246,6 +1246,9 @@ const Cloud = (() => {
   let token = null, exp = 0, tc = null, gis = null, busy = false, again = false, timer = 0, status = st.connected ? 'reauth' : 'off', lastErr = '', onTok = null, onErr = null;
   const persist = () => { if (!NOSAVE) try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} };
   const enabled = () => !!CID && !DEMO, valid = () => !!token && Date.now() < exp - 60e3;
+  /* LINE / FB / IG 等 App 內建瀏覽器：沒有 Google 登入狀態也沒有密碼金鑰，驗證容易卡住，有些甚至直接被 Google 擋下 */
+  const ua = navigator.userAgent, isLine = /Line\//i.test(ua), inApp = isLine || /FBAN|FBAV|Instagram|MicroMessenger|; wv\)/i.test(ua);
+  const extUrl = () => { try { const u = new URL(location.href); if (isLine) u.searchParams.set('openExternalBrowser', '1'); return u.href; } catch (e) { return location.href; } };
   function loadGis() {
     if (window.google && google.accounts && google.accounts.oauth2) return Promise.resolve();
     if (!gis) gis = new Promise((res, rej) => { const sc = document.createElement('script'); sc.src = 'https://accounts.google.com/gsi/client'; sc.async = true;
@@ -1259,7 +1262,9 @@ const Cloud = (() => {
         if (google.accounts.oauth2.hasGrantedAllScopes && !google.accounts.oauth2.hasGrantedAllScopes(r, SCOPE)) return rej(new Error('需要勾選「查看、編輯、建立及刪除這個應用程式所使用的檔案」才能同步。'));
         token = r.access_token; exp = Date.now() + (+r.expires_in || 3600) * 1000; res(); };
       onErr = e => rej(new Error(e && e.type === 'popup_closed' ? '登入視窗被關閉了。' : '無法開啟 Google 登入視窗，可能被瀏覽器擋下了。'));
-      tc.requestAccessToken({ prompt });
+      /* 帶上次登入的 email，Google 就不必再問「選擇帳戶」，也比較不容易觸發額外驗證 */
+      const hint = st.user && st.user.email;
+      tc.requestAccessToken(hint ? { prompt, hint } : { prompt });
     }));
   }
   async function api(path, o = {}) {
@@ -1362,9 +1367,12 @@ const Cloud = (() => {
       B.innerHTML = `<p>登入之後，你的省思紀錄會存進<b>你自己的</b> Google 雲端硬碟，換手機、換電腦都接得上。</p>
         <ul><li>會在你的雲端硬碟建立資料夾「生命樹 Tree of Life」，裡面有一份每天一列的試算表。</li><li>紀錄不會存在這個網站的伺服器；每個人的紀錄都只在自己的帳號裡。</li><li>這個網站只能看到它自己建立的那幾個檔案，看不到你雲端硬碟的其他內容。</li></ul>
         <p class="muted">登入即表示你了解我們如何處理資料，請見<a href="privacy.html" target="_blank" rel="noopener" style="color:inherit">隱私權政策</a>。</p>
+        ${inApp ? `<div class="cwarn" role="alert"><p>你現在是在 App 內建的瀏覽器裡，Google 登入常常會卡住。建議改用 Safari 或 Chrome 開啟再登入。</p><div class="row">${isLine ? `<a href="${esc(extUrl())}" id="clExt">用手機瀏覽器開啟</a>` : ''}<button id="clCopy">複製網址</button></div></div>` : ''}
         ${lastErr ? `<p class="cerr">${esc(lastErr)}</p>` : ''}
+        <p class="muted">登入時如果 Google 出現「掃描行動條碼」，請按 ✕ 關閉，再選「試試其他方式」或「使用密碼」就可以繼續。</p>
         <button class="gbtn" id="clGo" ${status === 'sync' ? 'disabled' : ''}>${status === 'sync' ? '登入中…' : '用 Google 帳號登入'}</button>
         <button class="ghost" id="clLater">先不用，只存在這台裝置</button>`;
+      const cp = $('#clCopy'); if (cp) cp.addEventListener('click', () => { const done = () => { cp.textContent = '已複製，請貼到瀏覽器'; }; try { navigator.clipboard.writeText(location.href).then(done, () => { cp.textContent = location.href; }); } catch (e) { cp.textContent = location.href; } });
       $('#clGo').addEventListener('click', () => sync(true)); $('#clLater').addEventListener('click', hooks.close); return;
     }
     const line = { sync: '同步中…', ok: `已同步　·　${when}`, idle: `已連結。上次同步：${when}`, reauth: `需要再確認一次 Google 帳號才能同步。上次同步：${when}`, error: `這次同步沒有成功。上次同步：${when}` }[status] || '';
